@@ -42,6 +42,40 @@ st.markdown("""
         background-color: #0B0E14;
     }
 
+    /* Sidebar container styling overrides */
+    [data-testid="stSidebar"] {
+        background-color: #0E121A !important;
+        border-right: 1px solid #1E293B !important;
+    }
+    
+    /* Ensure all text inside the sidebar has high contrast */
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3, 
+    [data-testid="stSidebar"] h4, 
+    [data-testid="stSidebar"] h5, 
+    [data-testid="stSidebar"] h6,
+    [data-testid="stSidebar"] .stSubheader {
+        color: #F8FAFC !important;
+    }
+    
+    [data-testid="stSidebar"] p, 
+    [data-testid="stSidebar"] span, 
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] div[data-testid="stWidgetLabel"] p {
+        color: #CBD5E1 !important;
+    }
+
+    /* Slider specific bounds and tick markers */
+    [data-testid="stSidebar"] [data-testid="stThumbValue"],
+    [data-testid="stSidebar"] [data-testid="stSliderTickBar"] {
+        color: #F8FAFC !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+        color: #94A3B8 !important;
+    }
+
     /* Target widget label text specifically for high-contrast visibility */
     div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel, [data-testid="stWidgetLabel"] label {
         color: #E2E8F0 !important;
