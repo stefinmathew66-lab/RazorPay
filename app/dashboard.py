@@ -95,28 +95,70 @@ st.markdown("""
         color: #F8FAFC !important;
         border: 1px solid #334155 !important;
         border-radius: 6px !important;
-        transition: background-color 0.2s ease, border-color 0.2s ease !important;
+        transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
     }
     
     button:hover, [data-testid="stBaseButton-secondary"]:hover, [data-testid="stBaseButton-primary"]:hover {
         background-color: #334155 !important;
         border-color: #475569 !important;
         color: #FFFFFF !important;
+        transform: translateY(-1px);
     }
     
     /* Ensure text inside buttons is white and legible */
     button p, [data-testid="stBaseButton-secondary"] p, [data-testid="stBaseButton-primary"] p {
         color: #F8FAFC !important;
     }
+
+    /* Sidebar Chevron Expand/Collapse Arrow Visibility Fix */
+    [data-testid="collapsedControl"] button,
+    [data-testid="collapsedControl"] svg,
+    [data-testid="stSidebar"] button svg,
+    .stApp [aria-label="Collapse sidebar"] svg,
+    .stApp [aria-label="Expand sidebar"] svg,
+    [data-testid="collapsedControl"] svg g path,
+    [data-testid="collapsedControl"] svg path,
+    div[data-testid="collapsedControl"] button svg,
+    div[data-testid="collapsedControl"] svg {
+        fill: #F8FAFC !important;
+        stroke: #F8FAFC !important;
+        color: #F8FAFC !important;
+    }
     
-    /* Header Container styling */
+    [data-testid="collapsedControl"] button {
+        background-color: #1E293B !important;
+        border: 1px solid #334155 !important;
+        border-radius: 50% !important;
+        width: 38px !important;
+        height: 38px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    }
+
+    /* Subtle Entry Fade-in and Slide-up Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Premium Glassmorphic Layouts */
     .header-container {
-        background: linear-gradient(135deg, #1A1F2C 0%, #0E121A 100%);
-        border: 1px solid #232B3E;
+        background: linear-gradient(135deg, rgba(26, 31, 44, 0.8) 0%, rgba(14, 18, 26, 0.8) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 12px;
         padding: 24px;
         margin-bottom: 25px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     .header-title {
@@ -135,19 +177,21 @@ st.markdown("""
         margin: 0;
     }
     
-    /* Card Container styling */
     .metric-card {
-        background: #111622;
-        border: 1px solid #1E293B;
+        background: rgba(17, 22, 34, 0.65) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
         border-radius: 10px;
         padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        transition: transform 0.2s ease, border-color 0.2s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     .metric-card:hover {
-        border-color: #38BDF8;
+        border-color: rgba(56, 189, 248, 0.3) !important;
         transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.4);
     }
     
     .metric-title {
@@ -170,21 +214,23 @@ st.markdown("""
         padding: 24px;
         margin-bottom: 20px;
         border: 1px solid;
+        backdrop-filter: blur(8px);
+        animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     .low-risk {
         background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
-        border-color: rgba(16, 185, 129, 0.3);
+        border-color: rgba(16, 185, 129, 0.2);
     }
     
     .medium-risk {
         background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 100%);
-        border-color: rgba(245, 158, 11, 0.3);
+        border-color: rgba(245, 158, 11, 0.2);
     }
     
     .high-risk {
         background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.02) 100%);
-        border-color: rgba(239, 68, 68, 0.3);
+        border-color: rgba(239, 68, 68, 0.2);
     }
     
     .pill-badge {
@@ -197,9 +243,9 @@ st.markdown("""
         letter-spacing: 0.05em;
     }
     
-    .pill-low { background: #065F46; color: #34D399; }
-    .pill-med { background: #78350F; color: #FBBF24; }
-    .pill-high { background: #7F1D1D; color: #FCA5A5; }
+    .pill-low { background: rgba(6, 95, 70, 0.6); color: #34D399; }
+    .pill-med { background: rgba(120, 53, 15, 0.6); color: #FBBF24; }
+    .pill-high { background: rgba(127, 29, 29, 0.6); color: #FCA5A5; }
     
     /* SHAP Explanations list */
     .factor-item {
@@ -207,7 +253,8 @@ st.markdown("""
         justify-content: space-between;
         align-items: center;
         padding: 10px 0;
-        border-bottom: 1px solid #1E293B;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     .factor-text {
@@ -226,6 +273,43 @@ st.markdown("""
         font-weight: 600;
         font-size: 13px;
     }
+
+    /* Style Streamlit Tabs for premium visual feedback */
+    div[data-baseweb="tab-list"] {
+        background-color: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        gap: 8px !important;
+    }
+
+    div[data-baseweb="tab"] {
+        background-color: transparent !important;
+        color: #94A3B8 !important;
+        font-weight: 500 !important;
+        padding: 10px 16px !important;
+        border-radius: 6px 6px 0 0 !important;
+        border-bottom: 2px solid transparent !important;
+        transition: all 0.2s ease !important;
+    }
+
+    div[data-baseweb="tab"]:hover {
+        color: #F8FAFC !important;
+        background-color: rgba(255, 255, 255, 0.02) !important;
+    }
+
+    div[data-baseweb="tab"][aria-selected="true"] {
+        color: #38BDF8 !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid #38BDF8 !important;
+        background-color: rgba(56, 189, 248, 0.05) !important;
+    }
+
+    /* Standard stForm premium styling overrides */
+    [data-testid="stForm"] {
+        background-color: rgba(17, 22, 34, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 12px !important;
+        padding: 24px !important;
+        animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 </style>
 """, unsafe_allow_html=True)
 
