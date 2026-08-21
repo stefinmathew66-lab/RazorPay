@@ -6,12 +6,8 @@ from pydantic import BaseModel, Field
 # Setup sys.path to ensure src imports work correctly
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-try:
-    from src.risk_engine import RiskEngine
-    from src.explain import RiskExplainer
-except ModuleNotFoundError:
-    from risk_engine import RiskEngine
-    from explain import RiskExplainer
+from src.risk_engine import RiskEngine
+from src.explain import RiskExplainer
 
 # Initialize FastAPI app
 app = FastAPI(

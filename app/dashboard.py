@@ -11,12 +11,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score, roc_auc_score
 
-try:
-    from src.risk_engine import RiskEngine
-    from src.explain import RiskExplainer
-except ModuleNotFoundError:
-    from risk_engine import RiskEngine
-    from explain import RiskExplainer
+from src.risk_engine import RiskEngine
+from src.explain import RiskExplainer
 
 # Set page config to wide layout
 st.set_page_config(
