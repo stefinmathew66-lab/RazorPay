@@ -424,8 +424,6 @@ st.markdown("""
         color: #FFFFFF !important;
         border-radius: 6px !important;
     }
-    
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -756,7 +754,7 @@ with tab_score:
                     )
                     
                     # Small visual horizontal bar representing SHAP weight
-                    st.progress(min(1.0, r["impact"] / 0.50))
+                    st.progress(min(1.0, max(0.0, abs(r["impact"]) / 0.50)))
 
 # -------------------------------------------------------------
 # TAB 2: MODEL OPTIMIZATION ANALYTICS
@@ -928,6 +926,12 @@ with tab_batch:
     if uploaded_file is not None:
         try:
             input_df = pd.read_csv(uploaded_file)
+            
+            # Safe numeric conversion for dirty CSV uploads
+            categorical_cols = {"pincode_tier", "payment_mode", "category"}
+            for col in input_df.columns:
+                if col not in categorical_cols:
+                    input_df[col] = pd.to_numeric(input_df[col], errors='coerce').fillna(0)
             
             # Score
             scored_df = engine.score_batch(input_df)
