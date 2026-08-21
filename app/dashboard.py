@@ -72,9 +72,9 @@ st.markdown("""
         color: #666666 !important;
     }
 
-    /* Target widget label text specifically for Vercel style labels */
+    /* Target widget label text specifically for Vercel style labels with high contrast */
     div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel, [data-testid="stWidgetLabel"] label {
-        color: #888888 !important;
+        color: #CCCCCC !important;
         font-weight: 500 !important;
         font-size: 13.5px !important;
         letter-spacing: -0.01em;
@@ -82,13 +82,43 @@ st.markdown("""
 
     /* Force markdown p tags to stand out with slate light color */
     div[data-testid="stMarkdownContainer"] p {
-        color: #888888 !important;
+        color: #94A3B8 !important;
     }
 
-    /* Headers text color override */
+    /* Headers text color override with strong visibility */
     h1, h2, h3, h4, h5, h6 {
         color: #FFFFFF !important;
-        letter-spacing: -0.02em;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em !important;
+    }
+
+    /* Give section subheaders inside the forms a clean left accent border */
+    div[data-testid="stMarkdownContainer"] h5 {
+        border-left: 2px solid #38BDF8 !important;
+        padding-left: 10px !important;
+        font-weight: 600 !important;
+        margin-top: 18px !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Styles for sidebar optimal threshold card */
+    .threshold-card {
+        background-color: #0A0A0A !important;
+        border: 1px solid #222222 !important;
+        border-radius: 8px !important;
+        padding: 16px !important;
+        border-left: 4px solid #38BDF8 !important;
+    }
+    .threshold-card p {
+        margin: 0 !important;
+        color: #F8FAFC !important;
+    }
+    .threshold-card p.card-label {
+        color: #888888 !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
     }
 
     /* Vercel styling for secondary and primary buttons */
@@ -448,11 +478,11 @@ if test_data is not None and engine is not None:
     # Display optimization stats in Sidebar
     st.sidebar.markdown(f"#### 🎯 Optimal Decision Threshold")
     st.sidebar.markdown(
-        f"<div style='background-color:#1E293B; border-radius:8px; padding:15px; border-left:4px solid #38BDF8;'>"
-        f"<p style='margin:0; font-size:12px; color:#94A3B8;'>OPTIMIZED THRESHOLD</p>"
-        f"<p style='margin:0 0 10px 0; font-size:24px; font-weight:700; color:#38BDF8;'>{optimal_threshold:.2f}</p>"
-        f"<p style='margin:0; font-size:12px; color:#94A3B8;'>ESTIMATED SAVINGS VS 0.50 CUTOFF</p>"
-        f"<p style='margin:0; font-size:16px; font-weight:600; color:#34D399;'>₹{savings:,.2f} ({pct_savings:.1f}%)</p>"
+        f"<div class='threshold-card'>"
+        f"  <p class='card-label'>OPTIMIZED THRESHOLD</p>"
+        f"  <p style='margin:0 0 10px 0; font-size:24px; font-weight:700; color:#38BDF8;'>{optimal_threshold:.2f}</p>"
+        f"  <p class='card-label'>ESTIMATED SAVINGS VS 0.50 CUTOFF</p>"
+        f"  <p style='margin:0; font-size:16px; font-weight:600; color:#34D399;'>₹{savings:,.2f} ({pct_savings:.1f}%)</p>"
         f"</div>",
         unsafe_allow_html=True
     )
