@@ -111,21 +111,8 @@ st.markdown("""
     }
 
     /* Sidebar Chevron Expand/Collapse Arrow Visibility Fix */
-    [data-testid="collapsedControl"] button,
-    [data-testid="collapsedControl"] svg,
-    [data-testid="stSidebar"] button svg,
-    .stApp [aria-label="Collapse sidebar"] svg,
-    .stApp [aria-label="Expand sidebar"] svg,
-    [data-testid="collapsedControl"] svg g path,
-    [data-testid="collapsedControl"] svg path,
-    div[data-testid="collapsedControl"] button svg,
-    div[data-testid="collapsedControl"] svg {
-        fill: #F8FAFC !important;
-        stroke: #F8FAFC !important;
-        color: #F8FAFC !important;
-    }
-    
-    [data-testid="collapsedControl"] button {
+    button[data-testid="stExpandSidebarButton"],
+    [data-testid="stSidebarCollapseButton"] button {
         background-color: #1E293B !important;
         border: 1px solid #334155 !important;
         border-radius: 50% !important;
@@ -135,6 +122,32 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+        transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+    }
+
+    button[data-testid="stExpandSidebarButton"]:hover,
+    [data-testid="stSidebarCollapseButton"] button:hover {
+        background-color: #334155 !important;
+        border-color: #475569 !important;
+        transform: scale(1.05);
+    }
+    
+    button[data-testid="stExpandSidebarButton"] span[data-testid="stIconMaterial"],
+    [data-testid="stSidebarCollapseButton"] button span[data-testid="stIconMaterial"] {
+        color: #F8FAFC !important;
+        font-size: 20px !important;
+    }
+
+    /* Sidebar Collapse Button Wrapper Visibility Override */
+    [data-testid="stSidebarCollapseButton"] {
+        visibility: visible !important;
+    }
+
+    /* Force the stark white Streamlit top header bar to be transparent */
+    header[data-testid="stHeader"], [data-testid="stHeader"] {
+        background-color: transparent !important;
+        background: transparent !important;
+        border-bottom: none !important;
     }
 
     /* Subtle Entry Fade-in and Slide-up Animations */
