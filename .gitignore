@@ -8,5 +8,3 @@ __pycache__/
 env/
 venv/
 data/rto_orders.csv
-models/*.joblib
-models/threshold_sweep.csv
