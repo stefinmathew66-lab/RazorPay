@@ -27,7 +27,7 @@ st.set_page_config(
 # -------------------------------------------------------------
 st.markdown("""
 <style>
-    /* Main Background and Typography styling */
+    /* Vercel Geist Design System - Dark Mode Specification */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
     html, body, [class*="css"] {
@@ -35,13 +35,13 @@ st.markdown("""
     }
     
     .stApp {
-        background-color: #0B0E14;
+        background-color: #000000;
     }
 
-    /* Sidebar container styling overrides */
+    /* Sidebar container overrides */
     [data-testid="stSidebar"] {
-        background-color: #0E121A !important;
-        border-right: 1px solid #1E293B !important;
+        background-color: #000000 !important;
+        border-right: 1px solid #222222 !important;
     }
     
     /* Ensure all text inside the sidebar has high contrast */
@@ -52,89 +52,114 @@ st.markdown("""
     [data-testid="stSidebar"] h5, 
     [data-testid="stSidebar"] h6,
     [data-testid="stSidebar"] .stSubheader {
-        color: #F8FAFC !important;
+        color: #FFFFFF !important;
     }
     
     [data-testid="stSidebar"] p, 
     [data-testid="stSidebar"] span, 
     [data-testid="stSidebar"] label,
     [data-testid="stSidebar"] div[data-testid="stWidgetLabel"] p {
-        color: #CBD5E1 !important;
+        color: #888888 !important;
     }
 
     /* Slider specific bounds and tick markers */
     [data-testid="stSidebar"] [data-testid="stThumbValue"],
     [data-testid="stSidebar"] [data-testid="stSliderTickBar"] {
-        color: #F8FAFC !important;
+        color: #FFFFFF !important;
     }
     
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
-        color: #94A3B8 !important;
+        color: #666666 !important;
     }
 
-    /* Target widget label text specifically for high-contrast visibility */
+    /* Target widget label text specifically for Vercel style labels */
     div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel, [data-testid="stWidgetLabel"] label {
-        color: #E2E8F0 !important;
+        color: #888888 !important;
         font-weight: 500 !important;
-        font-size: 14px !important;
+        font-size: 13.5px !important;
+        letter-spacing: -0.01em;
     }
 
     /* Force markdown p tags to stand out with slate light color */
     div[data-testid="stMarkdownContainer"] p {
-        color: #CBD5E1 !important;
+        color: #888888 !important;
     }
 
     /* Headers text color override */
     h1, h2, h3, h4, h5, h6 {
-        color: #F8FAFC !important;
+        color: #FFFFFF !important;
+        letter-spacing: -0.02em;
     }
 
-    /* Style all Streamlit buttons consistently (dark theme style) */
-    button, [data-testid="stBaseButton-secondary"], [data-testid="stBaseButton-primary"], [data-testid="stBaseButton-headerNoPadding"] {
-        background-color: #1E293B !important;
-        color: #F8FAFC !important;
-        border: 1px solid #334155 !important;
+    /* Vercel styling for secondary and primary buttons */
+    button, [data-testid="stBaseButton-secondary"] {
+        background-color: #0A0A0A !important;
+        color: #FFFFFF !important;
+        border: 1px solid #222222 !important;
         border-radius: 6px !important;
-        transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        padding: 6px 16px !important;
+        transition: all 0.2s ease !important;
     }
     
-    button:hover, [data-testid="stBaseButton-secondary"]:hover, [data-testid="stBaseButton-primary"]:hover {
-        background-color: #334155 !important;
-        border-color: #475569 !important;
+    button:hover, [data-testid="stBaseButton-secondary"]:hover {
+        background-color: #111111 !important;
+        border-color: #444444 !important;
         color: #FFFFFF !important;
+    }
+    
+    /* Vercel Primary Button style (solid white button with black text) */
+    button[kind="primary"], [data-testid="stBaseButton-primary"] {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        border: 1px solid #FFFFFF !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        transition: all 0.2s ease !important;
+    }
+
+    button[kind="primary"]:hover, [data-testid="stBaseButton-primary"]:hover {
+        background-color: #E2E8F0 !important;
+        color: #000000 !important;
+        border-color: #E2E8F0 !important;
         transform: translateY(-1px);
     }
     
-    /* Ensure text inside buttons is white and legible */
-    button p, [data-testid="stBaseButton-secondary"] p, [data-testid="stBaseButton-primary"] p {
-        color: #F8FAFC !important;
+    /* Ensure text inside buttons is styled correctly */
+    button p, [data-testid="stBaseButton-secondary"] p {
+        color: #FFFFFF !important;
+    }
+    button[kind="primary"] p, [data-testid="stBaseButton-primary"] p {
+        color: #000000 !important;
     }
 
     /* Sidebar Chevron Expand/Collapse Arrow Visibility Fix */
     button[data-testid="stExpandSidebarButton"],
     [data-testid="stSidebarCollapseButton"] button {
-        background-color: #1E293B !important;
-        border: 1px solid #334155 !important;
+        background-color: #0A0A0A !important;
+        border: 1px solid #222222 !important;
         border-radius: 50% !important;
         width: 38px !important;
         height: 38px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-        transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+        transition: all 0.2s ease !important;
     }
 
     button[data-testid="stExpandSidebarButton"]:hover,
     [data-testid="stSidebarCollapseButton"] button:hover {
-        background-color: #334155 !important;
-        border-color: #475569 !important;
+        background-color: #111111 !important;
+        border-color: #444444 !important;
         transform: scale(1.05);
     }
     
     button[data-testid="stExpandSidebarButton"] span[data-testid="stIconMaterial"],
     [data-testid="stSidebarCollapseButton"] button span[data-testid="stIconMaterial"] {
-        color: #F8FAFC !important;
+        color: #FFFFFF !important;
         font-size: 20px !important;
     }
 
@@ -154,7 +179,7 @@ st.markdown("""
     @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translateY(12px);
+            transform: translateY(8px);
         }
         to {
             opacity: 1;
@@ -162,116 +187,100 @@ st.markdown("""
         }
     }
 
-    /* Premium Glassmorphic Layouts */
+    /* Vercel Card Layouts */
     .header-container {
-        background: linear-gradient(135deg, rgba(26, 31, 44, 0.8) 0%, rgba(14, 18, 26, 0.8) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
+        background-color: #0A0A0A;
+        border: 1px solid #222222;
+        border-radius: 8px;
         padding: 24px;
         margin-bottom: 25px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     .header-title {
-        color: #F8FAFC;
-        font-size: 26px;
+        color: #FFFFFF;
+        font-size: 24px;
         font-weight: 700;
         margin: 0 0 5px 0;
         display: flex;
         align-items: center;
         gap: 10px;
+        letter-spacing: -0.02em;
     }
     
     .header-subtitle {
-        color: #94A3B8;
-        font-size: 14px;
+        color: #888888;
+        font-size: 13.5px;
         margin: 0;
     }
     
     .metric-card {
-        background: rgba(17, 22, 34, 0.65) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        border-radius: 10px;
+        background-color: #0A0A0A !important;
+        border: 1px solid #222222 !important;
+        border-radius: 8px;
         padding: 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-        backdrop-filter: blur(10px);
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: all 0.2s ease;
         animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     .metric-card:hover {
-        border-color: rgba(56, 189, 248, 0.3) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        border-color: #444444 !important;
     }
     
     .metric-title {
-        color: #94A3B8;
-        font-size: 13px;
+        color: #888888;
+        font-size: 12px;
         font-weight: 500;
         text-transform: uppercase;
         margin-bottom: 8px;
+        letter-spacing: 0.05em;
     }
     
     .metric-value {
-        color: #F8FAFC;
-        font-size: 28px;
+        color: #FFFFFF;
+        font-size: 26px;
         font-weight: 700;
+        letter-spacing: -0.02em;
     }
     
     /* Scoring Result Cards */
     .result-card {
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 24px;
         margin-bottom: 20px;
-        border: 1px solid;
-        backdrop-filter: blur(8px);
+        border: 1px solid #222222;
+        background-color: #0A0A0A;
         animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    
-    .low-risk {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
-        border-color: rgba(16, 185, 129, 0.2);
-    }
-    
-    .medium-risk {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 100%);
-        border-color: rgba(245, 158, 11, 0.2);
-    }
-    
-    .high-risk {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.02) 100%);
-        border-color: rgba(239, 68, 68, 0.2);
     }
     
     .pill-badge {
         display: inline-block;
         padding: 4px 10px;
-        border-radius: 9999px;
-        font-size: 12px;
+        border-radius: 4px;
+        font-size: 11px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
     
-    .pill-low { background: rgba(6, 95, 70, 0.6); color: #34D399; }
-    .pill-med { background: rgba(120, 53, 15, 0.6); color: #FBBF24; }
-    .pill-high { background: rgba(127, 29, 29, 0.6); color: #FCA5A5; }
+    .pill-low { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .pill-med { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .pill-high { background: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); }
     
     /* SHAP Explanations list */
     .factor-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 12px 0;
+        border-bottom: 1px solid #222222;
         animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     .factor-text {
-        color: #E2E8F0;
+        color: #FFFFFF;
         font-size: 13.5px;
     }
     
@@ -287,42 +296,52 @@ st.markdown("""
         font-size: 13px;
     }
 
-    /* Style Streamlit Tabs for premium visual feedback */
+    /* Style Streamlit Tabs for Vercel layout (flat, white line indicator) */
     div[data-baseweb="tab-list"] {
         background-color: transparent !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-        gap: 8px !important;
+        border-bottom: 1px solid #222222 !important;
+        gap: 0px !important;
     }
 
     div[data-baseweb="tab"] {
         background-color: transparent !important;
-        color: #94A3B8 !important;
+        color: #888888 !important;
         font-weight: 500 !important;
-        padding: 10px 16px !important;
-        border-radius: 6px 6px 0 0 !important;
+        padding: 12px 20px !important;
+        border-radius: 0px !important;
         border-bottom: 2px solid transparent !important;
-        transition: all 0.2s ease !important;
+        transition: all 0.15s ease !important;
     }
 
     div[data-baseweb="tab"]:hover {
-        color: #F8FAFC !important;
-        background-color: rgba(255, 255, 255, 0.02) !important;
+        color: #FFFFFF !important;
     }
 
     div[data-baseweb="tab"][aria-selected="true"] {
-        color: #38BDF8 !important;
+        color: #FFFFFF !important;
         font-weight: 600 !important;
-        border-bottom: 2px solid #38BDF8 !important;
-        background-color: rgba(56, 189, 248, 0.05) !important;
+        border-bottom: 2px solid #FFFFFF !important;
+        background-color: transparent !important;
     }
 
-    /* Standard stForm premium styling overrides */
+    /* Vercel Form design */
     [data-testid="stForm"] {
-        background-color: rgba(17, 22, 34, 0.4) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        border-radius: 12px !important;
+        background-color: #0A0A0A !important;
+        border: 1px solid #222222 !important;
+        border-radius: 8px !important;
         padding: 24px !important;
         animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Style dropdown elements and input placeholders */
+    .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] {
+        background-color: #000000 !important;
+        border: 1px solid #222222 !important;
+        color: #FFFFFF !important;
+        border-radius: 6px !important;
+    }
+    
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -473,30 +492,59 @@ tab_score, tab_analytics, tab_batch = st.tabs([
 with tab_score:
     st.markdown("### Evaluate RTO Risk for a Single Order")
     
-    # Inputs grouped in 3 columns
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("##### 📍 Location Details")
+    # Inputs grouped in aligned rows (2-column layout)
+    # Row 1: Location Profile
+    st.markdown("##### 📍 Location Profile")
+    row1_col1, row1_col2 = st.columns(2)
+    with row1_col1:
         pincode_tier = st.selectbox("Pincode Tier", ["Tier 1", "Tier 2", "Tier 3"], index=2)
+    with row1_col2:
         pincode_rto_rate = st.slider("Pincode Historical Return Rate (%)", 3.0, 55.0, 15.0, step=1.0) / 100.0
-        pin_matches_city = st.selectbox("Pincode matches City?", ["Yes", "No (Address mismatch)"], index=0)
-        
-    with col2:
-        st.markdown("##### 💳 Order Details")
+
+    # Row 2: Order Core
+    st.markdown("##### 💳 Order Details")
+    row2_col1, row2_col2 = st.columns(2)
+    with row2_col1:
         payment_mode = st.selectbox("Payment Mode", ["COD", "Prepaid"], index=0)
+    with row2_col2:
         order_value = st.number_input("Order Total Value (₹)", min_value=299, max_value=25000, value=1850)
+
+    # Row 3: Incentives & Category
+    row3_col1, row3_col2 = st.columns(2)
+    with row3_col1:
         discount_pct = st.slider("Discount Applied (%)", 0.0, 80.0, 15.0, step=1.0)
+    with row3_col2:
         category = st.selectbox("Product Category", ["Apparel", "Footwear", "Beauty", "Electronics", "Home"], index=0)
+
+    # Row 4: Address Quality
+    st.markdown("##### 🏠 Delivery Address Quality")
+    row4_col1, row4_col2 = st.columns(2)
+    with row4_col1:
+        address_length = st.slider("Address Character Length", 10, 150, 65)
+    with row4_col2:
+        address_has_landmark = st.selectbox("Landmark Specified?", ["Yes", "No"], index=0)
+
+    # Row 5: Time & Verification Mismatches
+    row5_col1, row5_col2 = st.columns(2)
+    with row5_col1:
+        pin_matches_city = st.selectbox("Pincode matches City?", ["Yes", "No (Address mismatch)"], index=0)
+    with row5_col2:
         is_weekend_order = st.selectbox("Is Weekend Checkout?", ["No", "Yes"], index=0)
 
-    with col3:
-        st.markdown("##### 👤 Customer & Address Details")
-        address_length = st.slider("Address Character Length", 10, 150, 65)
-        address_has_landmark = st.selectbox("Landmark Specified?", ["Yes", "No"], index=0)
+    # Row 6: Customer History
+    st.markdown("##### 👤 Customer Purchase History")
+    row6_col1, row6_col2 = st.columns(2)
+    with row6_col1:
         customer_tenure_days = st.number_input("Customer Age/Tenure (Days)", min_value=0, max_value=730, value=120)
+    with row6_col2:
         customer_past_orders = st.number_input("Customer Past Orders", min_value=0, max_value=100, value=4)
+
+    # Row 7: Past RTO Rates
+    row7_col1, row7_col2 = st.columns(2)
+    with row7_col1:
         customer_past_rto_rate = st.slider("Customer Past Return Rate (%)", 0.0, 100.0, 10.0, step=1.0) / 100.0
+    with row7_col2:
+        st.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True) # visual spacer
 
     st.markdown("<br>", unsafe_allow_html=True)
     score_btn = st.button("🚀 Analyze Risk Profile", use_container_width=True, type="primary")
