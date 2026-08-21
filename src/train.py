@@ -14,39 +14,61 @@ def train_and_evaluate():
     os.makedirs("models", exist_ok=True)
     
     # 1. Load data
-    data_path = os.path.join("data", "rto_orders.csv")
-    if not os.path.exists(data_path):
-        raise FileNotFoundError(f"Dataset not found at {data_path}. Please run generate_data.py first.")
+    dataset_candidates = [
+        os.path.join("data", "orders.csv"),
+        os.path.join("data", "orders_sample.csv"),
+        os.path.join("data", "rto_orders.csv")
+    ]
+    data_path = None
+    for candidate in dataset_candidates:
+        if os.path.exists(candidate):
+            data_path = candidate
+            break
+            
+    if data_path is None:
+        raise FileNotFoundError(
+            "Dataset not found. Searched for: data/orders.csv, data/orders_sample.csv, data/rto_orders.csv. "
+            "Please run generate_data.py first."
+        )
         
     df = pd.read_csv(data_path)
-    print(f"Loaded dataset: {df.shape[0]} rows, {df.shape[1]} columns.")
+    print(f"Loaded dataset: {df.shape[0]} rows, {df.shape[1]} columns from {data_path}.")
+    
+    # Drop rows where target is NaN (safeguard for trailing empty rows)
+    df = df.dropna(subset=["is_rto"])
     
     # 2. Drop identifiers and target-leakage debug features
-    # pincode_id is categorical with 300 levels, we drop it since we have pincode_rto_rate and pincode_tier
-    # _true_risk_prob is the true probability from generator (must drop to prevent leakage)
-    X = df.drop(columns=["pincode_id", "_true_risk_prob", "is_rto"])
+    drop_cols = ["pincode_id", "_true_risk_prob", "is_rto"]
+    if "order_id" in df.columns:
+        drop_cols.append("order_id")
+    X = df.drop(columns=drop_cols)
     y = df["is_rto"]
     
-    # 3. Handle Categorical Columns
-    categorical_cols = ["pincode_tier", "payment_mode", "category"]
-    label_encoders = {}
-    
-    # Copy features to prevent SettingWithCopyWarning
-    X = X.copy()
-    
-    for col in categorical_cols:
-        le = LabelEncoder()
-        X[col] = le.fit_transform(X[col])
-        label_encoders[col] = le
-        print(f"Encoded {col}: {list(le.classes_)} -> {list(range(len(le.classes_)))}")
-        
     # Save the order of features to ensure consistent production scoring
     feature_columns = list(X.columns)
     
-    # 4. Stratified Train-Test Split (80/20)
+    # 3. Stratified Train-Test Split (80/20) - Splitting BEFORE mapping categories
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.20, random_state=42, stratify=y
     )
+    
+    # 4. Handle Categorical Columns (preventing leakage by fitting only on train)
+    categorical_cols = ["pincode_tier", "payment_mode", "category"]
+    category_mappings = {}
+    
+    X_train = X_train.copy()
+    X_test = X_test.copy()
+    
+    for col in categorical_cols:
+        unique_vals = X_train[col].dropna().unique()
+        mapping = {val: idx for idx, val in enumerate(unique_vals)}
+        category_mappings[col] = mapping
+        
+        # Safe transformation defaulting unseen/null labels to -1
+        X_train[col] = X_train[col].map(mapping).fillna(-1).astype(int)
+        X_test[col] = X_test[col].map(mapping).fillna(-1).astype(int)
+        print(f"Mapped {col}: {mapping} (Unseen mapped to -1)")
+        
     print(f"\nTrain set shape: {X_train.shape[0]} samples (RTO rate: {y_train.mean()*100:.2f}%)")
     print(f"Test set shape:  {X_test.shape[0]} samples (RTO rate: {y_test.mean()*100:.2f}%)")
     
@@ -130,16 +152,17 @@ def train_and_evaluate():
     print(f"\nWinning Model based on AUC-ROC: {winner_name} (AUC: {best_res['AUC-ROC']:.4f})")
     
     # 9. Save artifacts to models/ directory
-    # We save all models, label encoders, features, scaler, and the test set for threshold analysis.
+    # We save all models, mappings, features, scaler, and metadata.
     artifacts = {
         "log_reg": log_reg,
         "rf": rf,
         "xgb": xgb,
-        "label_encoders": label_encoders,
+        "label_encoders": category_mappings, # Keep the key label_encoders for compatibility with RiskEngine
         "scaler": scaler,
         "feature_columns": feature_columns,
         "winner_name": winner_name,
-        "winning_model": trained_objects[winner_name]
+        "winning_model": trained_objects[winner_name],
+        "requires_scaling": True if winner_name == "Logistic Regression" else False
     }
     
     # Save the collective artifacts dictionary

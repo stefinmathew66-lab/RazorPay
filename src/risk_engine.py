@@ -36,10 +36,14 @@ class RiskEngine:
                 
         # Encode categorical columns
         for col, le in self.label_encoders.items():
-            # Handle unseen categories by mapping to the first class or default
-            df[col] = df[col].apply(lambda x: x if x in le.classes_ else le.classes_[0])
-            df[col] = le.transform(df[col])
-            
+            if isinstance(le, dict):
+                # Dict mapping (new format): map values directly, default unseen categories to -1
+                df[col] = df[col].map(le).fillna(-1).astype(int)
+            else:
+                # LabelEncoder (fallback format):
+                df[col] = df[col].apply(lambda x: x if x in le.classes_ else le.classes_[0])
+                df[col] = le.transform(df[col])
+                
         # Select features in the exact training order
         df = df[self.feature_columns]
         
@@ -81,7 +85,8 @@ class RiskEngine:
         df_processed = self._preprocess_order_df(df_input)
         
         # Run predictions
-        if self.winner_name == "Logistic Regression":
+        requires_scaling = self.artifacts.get("requires_scaling", False)
+        if requires_scaling:
             df_scaled = self.scaler.transform(df_processed)
             probs = self.model.predict_proba(df_scaled)[:, 1]
         else:
