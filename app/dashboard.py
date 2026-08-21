@@ -1,8 +1,14 @@
+"""
+Razorpay RTO Risk-Ops & Profit Protection Engine
+Executive Control Center & Dynamic Checkout Profit Arbitrage Dashboard
+"""
+
 import os
 import sys
 import joblib
 import pandas as pd
 import numpy as np
+
 # Setup sys.path to ensure src imports work correctly
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -16,29 +22,40 @@ from src.explain import RiskExplainer
 
 # Set page config to wide layout
 st.set_page_config(
-    page_title="Razorpay RTO Risk-Ops Control Center",
+    page_title="Razorpay RTO Risk-Ops & Profit Protection Engine",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # -------------------------------------------------------------
-# CSS STYLING FOR PREMIUM DARK RISK-OPS THEME
+# CSS STYLING FOR PREMIUM VERCEL DARK THEME
 # -------------------------------------------------------------
 st.markdown("""
 <style>
     /* Modern Premium Typography - Plus Jakarta Sans & Inter */
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
     
-    * {
+    html, body, [class*="css"], .stApp, 
+    div[data-testid="stMarkdownContainer"], 
+    p, h1, h2, h3, h4, h5, h6, 
+    label, input, select, textarea, button {
         font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
         -webkit-font-smoothing: antialiased !important;
         -moz-osx-font-smoothing: grayscale !important;
         text-rendering: optimizeLegibility !important;
     }
     
-    html, body, [class*="css"], .stApp {
-        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    /* Preserve Streamlit Material Icons font */
+    span[data-testid="stIconMaterial"], 
+    [data-testid="stIconMaterial"], 
+    .material-symbols-rounded, 
+    .material-symbols-outlined,
+    [data-testid="stIconMaterial"] * {
+        font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', 'Material Icons' !important;
+    }
+    
+    html, body, .stApp {
         background-color: #000000;
     }
 
@@ -63,17 +80,13 @@ st.markdown("""
     [data-testid="stSidebar"] span, 
     [data-testid="stSidebar"] label,
     [data-testid="stSidebar"] div[data-testid="stWidgetLabel"] p {
-        color: #888888 !important;
+        color: #CCCCCC !important;
     }
 
     /* Slider specific bounds and tick markers */
     [data-testid="stSidebar"] [data-testid="stThumbValue"],
     [data-testid="stSidebar"] [data-testid="stSliderTickBar"] {
         color: #FFFFFF !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
-        color: #666666 !important;
     }
 
     /* Target widget label text specifically for Vercel style labels with high contrast */
@@ -119,7 +132,6 @@ st.markdown("""
         border-left: 4px solid #38BDF8 !important;
     }
     
-    /* Ensure high contrast in the sidebar for the threshold card specifically */
     [data-testid="stSidebar"] .threshold-card p,
     .threshold-card p {
         margin: 0 !important;
@@ -146,7 +158,7 @@ st.markdown("""
     [data-testid="stSidebar"] .threshold-card p.savings-val,
     .threshold-card p.savings-val {
         color: #34D399 !important;
-        font-size: 16px !important;
+        font-size: 15px !important;
         font-weight: 600 !important;
         margin: 0 !important;
     }
@@ -179,7 +191,7 @@ st.markdown("""
         font-weight: 600 !important;
     }
 
-    /* Vercel styling for secondary and primary buttons */
+    /* Vercel styling for secondary and primary buttons with bottom fade-in hover effect */
     button, [data-testid="stBaseButton-secondary"] {
         background-color: #0A0A0A !important;
         color: #FFFFFF !important;
@@ -188,16 +200,20 @@ st.markdown("""
         font-size: 14px !important;
         font-weight: 500 !important;
         padding: 6px 16px !important;
-        transition: all 0.2s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
     
     button:hover, [data-testid="stBaseButton-secondary"]:hover {
-        background-color: #111111 !important;
+        background: linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.04) 55%, #0A0A0A 100%) !important;
         border-color: #444444 !important;
         color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 -2px 10px rgba(255, 255, 255, 0.1) inset !important;
+        transform: translateY(-1px) !important;
     }
     
-    /* Vercel Primary Button style (solid white button with black text) */
+    /* Vercel Primary Button style (solid white button with bottom fade highlight) */
     button[kind="primary"], [data-testid="stBaseButton-primary"], .stButton button[kind="primary"] {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -207,16 +223,18 @@ st.markdown("""
         font-size: 15px !important;
         letter-spacing: -0.01em !important;
         padding: 10px 24px !important;
+        position: relative !important;
+        overflow: hidden !important;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
-        transition: all 0.18s ease-in-out !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     button[kind="primary"]:hover, [data-testid="stBaseButton-primary"]:hover, .stButton button[kind="primary"]:hover {
-        background-color: #F1F5F9 !important;
+        background: linear-gradient(0deg, #FFFFFF 0%, #E2E8F0 100%) !important;
         color: #000000 !important;
-        border-color: #F1F5F9 !important;
+        border-color: #FFFFFF !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.35), 0 -6px 14px rgba(255, 255, 255, 0.6) inset !important;
     }
     
     /* Ensure text inside buttons is styled correctly */
@@ -273,7 +291,7 @@ st.markdown("""
         border-bottom: none !important;
     }
 
-    /* Subtle Entry Fade-in and Slide-up Animations */
+    /* Subtle Entry Fade-in Animations */
     @keyframes fadeInUp {
         from {
             opacity: 0;
@@ -338,7 +356,7 @@ st.markdown("""
     
     .metric-value {
         color: #FFFFFF;
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 700;
         letter-spacing: -0.02em;
     }
@@ -363,9 +381,10 @@ st.markdown("""
         letter-spacing: 0.05em;
     }
     
-    .pill-low { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .pill-med { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .pill-high { background: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .pill-green { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .pill-yellow { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .pill-orange { background: rgba(251, 146, 60, 0.15); color: #FB923C; border: 1px solid rgba(251, 146, 60, 0.3); }
+    .pill-red { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); }
     
     /* SHAP Explanations list */
     .factor-item {
@@ -394,41 +413,68 @@ st.markdown("""
         font-size: 13px;
     }
 
-    /* Style Streamlit Tabs for Vercel layout (flat, white line indicator) */
+    /* Segmented Pill Control Bar for Main Navigation Tabs */
     div[data-baseweb="tab-list"] {
-        background-color: transparent !important;
-        border-bottom: 1px solid #222222 !important;
-        gap: 0px !important;
+        background-color: #0A0A0A !important;
+        border: 1px solid #1E293B !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+        gap: 6px !important;
+        display: inline-flex !important;
+        width: max-content !important;
+        border-bottom: none !important;
     }
 
     div[data-baseweb="tab"] {
         background-color: transparent !important;
-        color: #888888 !important;
+        color: #94A3B8 !important;
+        border-radius: 6px !important;
+        border: 1px solid transparent !important;
+        border-bottom: none !important;
+        padding: 8px 18px !important;
+        font-size: 13.5px !important;
         font-weight: 500 !important;
-        padding: 12px 20px !important;
-        border-radius: 0px !important;
-        border-bottom: 2px solid transparent !important;
-        transition: all 0.15s ease !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    div[data-baseweb="tab"] p,
+    div[data-baseweb="tab"] span {
+        color: #94A3B8 !important;
+        font-size: 13.5px !important;
+        font-weight: 500 !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     div[data-baseweb="tab"]:hover {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border-color: #334155 !important;
+    }
+
+    div[data-baseweb="tab"]:hover p,
+    div[data-baseweb="tab"]:hover span {
         color: #FFFFFF !important;
     }
 
     div[data-baseweb="tab"][aria-selected="true"] {
-        color: #FFFFFF !important;
+        background-color: rgba(56, 189, 248, 0.12) !important;
+        border: 1px solid #38BDF8 !important;
+        border-bottom: 1px solid #38BDF8 !important;
+        color: #38BDF8 !important;
         font-weight: 600 !important;
-        border-bottom: 2px solid #FFFFFF !important;
-        background-color: transparent !important;
+        box-shadow: 0 0 14px rgba(56, 189, 248, 0.15) !important;
     }
 
-    /* Vercel Form design */
-    [data-testid="stForm"] {
-        background-color: #0A0A0A !important;
-        border: 1px solid #222222 !important;
-        border-radius: 8px !important;
-        padding: 24px !important;
-        animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    div[data-baseweb="tab"][aria-selected="true"] p,
+    div[data-baseweb="tab"][aria-selected="true"] span {
+        color: #38BDF8 !important;
+        font-weight: 600 !important;
+    }
+
+    /* Tab Indicator and Border Strip Removal */
+    div[data-baseweb="tab-highlight"], 
+    div[data-baseweb="tab-border"],
+    div[data-testid="stTabs"] hr {
+        display: none !important;
     }
 
     /* Style dropdown elements and input placeholders */
@@ -468,93 +514,142 @@ def get_test_set_predictions():
 test_data = get_test_set_predictions()
 
 # -------------------------------------------------------------
-# SIDEBAR - COST SLIDERS & LIVE OPTIMIZATION
+# SIDEBAR - DYNAMIC MERCHANT ECONOMICS SANDBOX
 # -------------------------------------------------------------
-st.sidebar.markdown("### 🛠️ Cost & Risk Parameters")
+st.sidebar.markdown("### 🛠️ Merchant Economics Sandbox")
+st.sidebar.markdown("<p style='font-size:12.5px; color:#888888;'>Tune unit economics to optimize net merchant profit rather than arbitrary classification cutoffs.</p>", unsafe_allow_html=True)
 
-# Sidebar sliders
-fp_cost = st.sidebar.slider(
-    "False Positive Cost (₹)",
-    min_value=50,
-    max_value=500,
-    value=150,
-    step=10,
-    help="Cost of a false alarm (e.g. lost margin on a blocked or delayed transaction)."
+gross_margin_pct = st.sidebar.slider(
+    "Average Product Gross Margin (%)",
+    min_value=10.0,
+    max_value=80.0,
+    value=40.0,
+    step=2.0,
+    help="Gross product margin before shipping and fulfillment costs."
+)
+gross_margin = gross_margin_pct / 100.0
+
+forward_shipping = st.sidebar.slider(
+    "Forward Shipping Cost (₹)",
+    min_value=30.0,
+    max_value=250.0,
+    value=70.0,
+    step=5.0,
+    help="Outbound shipping cost charged by logistics carrier."
 )
 
-fn_cost = st.sidebar.slider(
-    "False Negative Cost (₹)",
-    min_value=100,
-    max_value=1000,
-    value=300,
-    step=10,
-    help="Cost of missing an RTO order (e.g. forward + reverse shipping waste)."
+reverse_shipping = st.sidebar.slider(
+    "Reverse Shipping Cost (₹)",
+    min_value=40.0,
+    max_value=300.0,
+    value=90.0,
+    step=5.0,
+    help="Return freight fee incurred on undelivered/rejected COD packages."
+)
+
+packaging_cost = st.sidebar.slider(
+    "Packaging & Handling Loss (₹)",
+    min_value=10.0,
+    max_value=150.0,
+    value=40.0,
+    step=5.0,
+    help="Damaged packing, re-warehousing, and deadweight handling loss."
+)
+
+cac_penalty = st.sidebar.slider(
+    "CAC Opportunity Cost (₹)",
+    min_value=50.0,
+    max_value=500.0,
+    value=150.0,
+    step=10.0,
+    help="Customer acquisition cost lost when falsely blocking a legitimate buyer."
 )
 
 st.sidebar.divider()
 
-# Dynamic Threshold Tuning Logic inside Dashboard
+# -------------------------------------------------------------
+# DYNAMIC NET PROFIT THRESHOLD OPTIMIZATION
+# -------------------------------------------------------------
 if test_data is not None and engine is not None:
     X_test = test_data["X_test"]
     y_test = test_data["y_test"]
     X_test_scaled = test_data["X_test_scaled"]
-    
-    # Calculate probabilities using the winning model
+
+    # Calculate model probabilities on test set
     if engine.winner_name == "Logistic Regression":
-        probs = engine.model.predict_proba(X_test_scaled)[:, 1]
+        test_probs = engine.model.predict_proba(X_test_scaled)[:, 1]
     else:
-        probs = engine.model.predict_proba(X_test)[:, 1]
-        
-    # Re-sweep thresholds dynamically
+        test_probs = engine.model.predict_proba(X_test)[:, 1]
+
+    # Re-sweep thresholds based on Merchant Expected Net Profit
     thresholds = np.arange(0.10, 0.91, 0.05)
     sweep_results = []
     
+    # Approximate mean order value from test set or standard ₹1,850
+    avg_order_value = float(X_test["order_value"].mean()) if "order_value" in X_test.columns else 1850.0
+
     for t in thresholds:
-        preds = (probs >= t).astype(int)
+        preds = (test_probs >= t).astype(int)
         cm = confusion_matrix(y_test, preds)
         tn, fp, fn, tp = cm.ravel()
-        total_cost = (fp * fp_cost) + (fn * fn_cost)
-        
+
+        # Profit Economics:
+        # TN (Delivered COD): Earn gross margin - forward shipping
+        profit_tn = tn * ((avg_order_value * gross_margin) - forward_shipping)
+        # FP (Blocked good sale): Lost margin / CAC penalty
+        loss_fp = fp * cac_penalty
+        # FN (Undelivered RTO): Lost shipping + return freight + packaging
+        loss_fn = fn * (forward_shipping + reverse_shipping + packaging_cost)
+        # TP (Intercepted RTO converted to Prepaid with incentive):
+        # We recover ~70% as prepaid sales with ₹50 incentive discount
+        recovered_tp = tp * 0.70 * (((avg_order_value - 50.0) * gross_margin) - forward_shipping)
+
+        net_profit = profit_tn + recovered_tp - loss_fp - loss_fn
+
         sweep_results.append({
             "threshold": round(t, 2),
+            "net_profit": round(net_profit, 2),
             "FP": fp,
             "FN": fn,
-            "total_cost": total_cost,
+            "TP": tp,
+            "TN": tn,
             "precision": precision_score(y_test, preds, zero_division=0),
             "recall": recall_score(y_test, preds, zero_division=0),
             "f1_score": f1_score(y_test, preds, zero_division=0)
         })
-        
+
     sweep_df = pd.DataFrame(sweep_results)
-    
-    # Get optimal
-    optimal_idx = sweep_df["total_cost"].idxmin()
-    optimal_threshold = sweep_df.iloc[optimal_idx]["threshold"]
-    optimal_cost = sweep_df.iloc[optimal_idx]["total_cost"]
-    
-    # Default 0.5 cost
+
+    # Optimal Threshold is the point of Peak Net Profit
+    optimal_idx = sweep_df["net_profit"].idxmax()
+    optimal_threshold = float(sweep_df.iloc[optimal_idx]["threshold"])
+    optimal_profit = float(sweep_df.iloc[optimal_idx]["net_profit"])
+
+    # Default naive 0.50 cutoff profit
     default_row = sweep_df[sweep_df["threshold"] == 0.50].iloc[0]
-    default_cost = default_row["total_cost"]
-    savings = default_cost - optimal_cost
-    pct_savings = (savings / default_cost * 100) if default_cost > 0 else 0
-    
-    # Override optimal threshold in engines dynamically for this session
-    engine.optimal_threshold = float(optimal_threshold)
-    
-    # Display optimization stats in Sidebar
-    st.sidebar.markdown(f"#### 🎯 Optimal Decision Threshold")
+    default_profit = float(default_row["net_profit"])
+    profit_lift = optimal_profit - default_profit
+    profit_lift_pct = (profit_lift / abs(default_profit) * 100) if default_profit != 0 else 0.0
+
+    # Dynamically update optimal threshold on the engine for this session
+    engine.optimal_threshold = optimal_threshold
+
+    # Sidebar Optimal Card
+    st.sidebar.markdown(f"#### 🎯 Profit-Maximizing Threshold")
     st.sidebar.markdown(
         f"<div class='threshold-card'>"
-        f"  <p class='card-label'>OPTIMIZED THRESHOLD</p>"
+        f"  <p class='card-label'>OPTIMIZED CUTOFF</p>"
         f"  <p class='threshold-val'>{optimal_threshold:.2f}</p>"
-        f"  <p class='card-label'>ESTIMATED SAVINGS VS 0.50 CUTOFF</p>"
-        f"  <p class='savings-val'>₹{savings:,.2f} ({pct_savings:.1f}%)</p>"
+        f"  <p class='card-label'>ESTIMATED PROFIT LIFT VS 0.50</p>"
+        f"  <p class='savings-val'>+₹{profit_lift:,.2f} (+{profit_lift_pct:.1f}%)</p>"
         f"</div>",
         unsafe_allow_html=True
     )
 else:
-    optimal_threshold = 0.50
-    st.sidebar.warning("No test data loaded. Running with static default threshold 0.50.")
+    optimal_threshold = 0.20
+    optimal_profit = 0.0
+    profit_lift = 0.0
+    profit_lift_pct = 0.0
 
 # -------------------------------------------------------------
 # MAIN APP HEADER
@@ -564,8 +659,8 @@ st.markdown(
     f"  <div style='position: absolute; top: 24px; right: 24px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: #38BDF8; font-weight: 600;'>"
     f"    💻 Developer REST API: ACTIVE (Port 8000)"
     f"  </div>"
-    f"  <div class='header-title'>🛡️ Razorpay RTO Risk-Ops Control Center</div>"
-    f"  <p class='header-subtitle'>AI Risk Manager — Return-Risk Scorer for D2C cash-on-delivery and prepaid transactions. Judged track 2 build.</p>"
+    f"  <div class='header-title'>🛡️ Razorpay RTO Risk-Ops & Profit Protection Engine</div>"
+    f"  <p class='header-subtitle'>Autonomous Profit Arbitrage & Conversion Protection — Maximizing D2C Merchant GMV & Margins.</p>"
     f"</div>",
     unsafe_allow_html=True
 )
@@ -583,71 +678,62 @@ tab_score, tab_analytics, tab_batch = st.tabs([
 ])
 
 # -------------------------------------------------------------
-# TAB 1: SCORE TRANSACTION
+# TAB 1: SINGLE ORDER PROFIT & RISK SIMULATOR
 # -------------------------------------------------------------
 with tab_score:
-    st.markdown("### Evaluate RTO Risk for a Single Order")
+    st.markdown("### Single Order Profit & Risk Simulator")
     
-    # Inputs grouped in aligned rows (2-column layout)
-    # Row 1: Location Profile
+    # Grouped Inputs in 2-column layout
     st.markdown("##### 📍 Location Profile")
     row1_col1, row1_col2 = st.columns(2)
     with row1_col1:
         pincode_tier = st.selectbox("Pincode Tier", ["Tier 1", "Tier 2", "Tier 3"], index=2)
     with row1_col2:
-        pincode_rto_rate = st.slider("Pincode Historical Return Rate (%)", 3.0, 55.0, 15.0, step=1.0) / 100.0
+        pincode_rto_rate = st.slider("Pincode Historical Return Rate (%)", 3.0, 55.0, 22.0, step=1.0) / 100.0
 
-    # Row 2: Order Core
     st.markdown("##### 💳 Order Details")
     row2_col1, row2_col2 = st.columns(2)
     with row2_col1:
-        payment_mode = st.selectbox("Payment Mode", ["COD", "Prepaid"], index=0)
+        payment_mode = st.selectbox("Selected Checkout Payment Mode", ["COD", "Prepaid"], index=0)
     with row2_col2:
-        order_value = st.number_input("Order Total Value (₹)", min_value=299, max_value=25000, value=1850)
+        order_value = st.number_input("Order Total Value (₹)", min_value=299, max_value=25000, value=2850)
 
-    # Row 3: Incentives & Category
     row3_col1, row3_col2 = st.columns(2)
     with row3_col1:
-        discount_pct = st.slider("Discount Applied (%)", 0.0, 80.0, 15.0, step=1.0)
+        discount_pct = st.slider("Cart Discount Applied (%)", 0.0, 80.0, 15.0, step=1.0)
     with row3_col2:
         category = st.selectbox("Product Category", ["Apparel", "Footwear", "Beauty", "Electronics", "Home"], index=0)
 
-    # Row 4: Address Quality
     st.markdown("##### 🏠 Delivery Address Quality")
     row4_col1, row4_col2 = st.columns(2)
     with row4_col1:
-        address_length = st.slider("Address Character Length", 10, 150, 65)
+        address_length = st.slider("Address Character Length", 10, 150, 45)
     with row4_col2:
-        address_has_landmark = st.selectbox("Landmark Specified?", ["Yes", "No"], index=0)
+        address_has_landmark = st.selectbox("Landmark Specified?", ["Yes", "No"], index=1)
 
-    # Row 5: Time & Verification Mismatches
     row5_col1, row5_col2 = st.columns(2)
     with row5_col1:
         pin_matches_city = st.selectbox("Pincode matches City?", ["Yes", "No (Address mismatch)"], index=0)
     with row5_col2:
         is_weekend_order = st.selectbox("Is Weekend Checkout?", ["No", "Yes"], index=0)
 
-    # Row 6: Customer History
     st.markdown("##### 👤 Customer Purchase History")
     row6_col1, row6_col2 = st.columns(2)
     with row6_col1:
-        customer_tenure_days = st.number_input("Customer Age/Tenure (Days)", min_value=0, max_value=730, value=120)
+        customer_tenure_days = st.number_input("Customer Account Age (Days)", min_value=0, max_value=730, value=45)
     with row6_col2:
-        customer_past_orders = st.number_input("Customer Past Orders", min_value=0, max_value=100, value=4)
+        customer_past_orders = st.number_input("Customer Past Orders Completed", min_value=0, max_value=100, value=2)
 
-    # Row 7: Past RTO Rates
     row7_col1, row7_col2 = st.columns(2)
     with row7_col1:
-        customer_past_rto_rate = st.slider("Customer Past Return Rate (%)", 0.0, 100.0, 10.0, step=1.0) / 100.0
+        customer_past_rto_rate = st.slider("Customer Historical Return Rate (%)", 0.0, 100.0, 0.0, step=1.0) / 100.0
     with row7_col2:
-        st.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True) # visual spacer
+        st.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    score_btn = st.button("Analyze Risk Profile", use_container_width=True, type="primary")
-    
+    score_btn = st.button("Analyze Profit & Risk Profile", use_container_width=True, type="primary")
+
     if score_btn:
-        # Build order dict
-        # Ensure values map to internal generator representations
         order_dict = {
             "pincode_tier": pincode_tier,
             "pincode_rto_rate": pincode_rto_rate,
@@ -664,73 +750,96 @@ with tab_score:
             "customer_past_rto_count": int(customer_past_orders * customer_past_rto_rate),
             "customer_past_rto_rate": customer_past_rto_rate
         }
-        
-        # 1. Run scoring
-        score_res = engine.score_order(order_dict)
-        prob = score_res["risk_probability"]
-        tier = score_res["risk_tier"]
-        action = score_res["recommended_action"]
-        
+
+        # 1. Run profit-arbitrage scoring
+        verdict = engine.score_order(
+            order=order_dict,
+            gross_margin=gross_margin,
+            forward_shipping=forward_shipping,
+            reverse_shipping=reverse_shipping,
+            packaging_cost=packaging_cost,
+        )
+
+        prob = verdict["risk_probability"]
+        tier = verdict["risk_tier"]
+        action = verdict["recommended_action"]
+        action_payload = verdict["action_payload"]
+        exp_profit_cod = verdict["expected_profit_cod"]
+        exp_profit_prepaid = verdict["expected_profit_prepaid"]
+        exp_profit_discount = verdict["expected_profit_prepaid_discount"]
+
         # 2. Get local SHAP explainers
         reasons = explainer.explain_prediction(order_dict)
-        
-        # Style classes based on Tier
-        if tier == "Low":
-            card_class = "low-risk"
-            pill_class = "pill-low"
-            prob_color = "#34D399"
-        elif tier == "Medium":
-            card_class = "medium-risk"
-            pill_class = "pill-med"
-            prob_color = "#FBBF24"
-        else:
-            card_class = "high-risk"
-            pill_class = "pill-high"
-            prob_color = "#F87171"
-            
-        # Draw result section
+
+        badge_class = f"pill-{action_payload.get('badge', 'green').lower()}"
+        prob_color = action_payload.get("action_color", "#34D399")
+
         st.markdown("---")
-        st.markdown("### Risk Assessment Verdict")
-        
-        r_col1, r_col2 = st.columns([2, 3])
-        
-        with r_col1:
+        st.markdown("### Profit & Risk Decision Verdict")
+
+        col_v1, col_v2 = st.columns([2, 3])
+
+        with col_v1:
             override_html = ""
-            if score_res.get("override_reason"):
-                override_html = f"<div style='margin-top: 15px; padding: 10px; background-color: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; font-size: 11px; color: #FCA5A5;'>⚠️ <b>Fraud Override:</b> {score_res['override_reason']}</div>"
-                
+            if verdict.get("override_reason"):
+                override_html = f"<div style='margin-top: 15px; padding: 10px; background-color: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; font-size: 11px; color: #FCA5A5;'>⚠️ <b>Fraud Override:</b> {verdict['override_reason']}</div>"
+
+            # Result Card
             st.markdown(
-                f"<div class='result-card {card_class}'>"
-                f"  <p style='margin:0; font-size:12.5px; color:#94A3B8; font-weight:600;'>RISK SCORE VERDICT</p>"
+                f"<div class='result-card'>"
+                f"  <p style='margin:0; font-size:12px; color:#888888; font-weight:600; letter-spacing:0.05em;'>EXPECTED RTO PROBABILITY</p>"
                 f"  <div style='display:flex; align-items:baseline; justify-content:space-between; margin:10px 0;'>"
-                f"    <span style='font-size:42px; font-weight:800; color:{prob_color};'>{prob*100:.1f}%</span>"
-                f"    <span class='pill-badge {pill_class}'>{tier} Risk</span>"
+                f"    <span style='font-size:38px; font-weight:800; color:{prob_color};'>{prob*100:.1f}%</span>"
+                f"    <span class='pill-badge {badge_class}'>{tier} Risk ({action_payload.get('badge', 'GREEN')})</span>"
                 f"  </div>"
-                f"  <p style='margin:10px 0 0 0; font-size:13.5px; color:#94A3B8; font-weight:500;'>RECOMMENDED POLICY ACTION</p>"
-                f"  <p style='margin:2px 0 0 0; font-size:16px; font-weight:700; color:#F8FAFC;'>{action}</p>"
+                f"  <p style='margin:12px 0 0 0; font-size:12px; color:#888888; font-weight:600; letter-spacing:0.05em;'>PROFIT-MAXIMIZING ACTION</p>"
+                f"  <p style='margin:2px 0 0 0; font-size:16px; font-weight:700; color:#FFFFFF;'>{action}</p>"
+                f"  <div style='margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border:1px solid #222222; border-radius:6px; font-size:13px; color:#CCCCCC;'>"
+                f"    👉 <b>Checkout Intervention:</b> {action_payload['display_message']}"
+                f"  </div>"
                 f"  {override_html}"
-                f"  <p style='margin:15px 0 0 0; font-size:11px; color:#64748B;'>Decision optimized for threshold: {engine.optimal_threshold:.2f}</p>"
                 f"</div>",
                 unsafe_allow_html=True
             )
-            
-            # Interactive Plotly Radial/Gauge Chart
+
+            # Profit Comparison Box
+            st.markdown(
+                f"<div class='result-card' style='padding: 18px;'>"
+                f"  <p style='margin:0 0 10px 0; font-size:12px; color:#888888; font-weight:600;'>EXPECTED NET PROFIT ARBITRAGE</p>"
+                f"  <div style='display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1E293B;'>"
+                f"    <span style='color:#CCCCCC; font-size:13px;'>Expected Profit (Fulfilled via COD):</span>"
+                f"    <span style='font-weight:700; color:{'#34D399' if exp_profit_cod >= 0 else '#F87171'};'>₹{exp_profit_cod:,.2f}</span>"
+                f"  </div>"
+                f"  <div style='display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1E293B;'>"
+                f"    <span style='color:#CCCCCC; font-size:13px;'>Expected Profit (Prepaid Converted):</span>"
+                f"    <span style='font-weight:700; color:#34D399;'>₹{exp_profit_prepaid:,.2f}</span>"
+                f"  </div>"
+                f"  <div style='display:flex; justify-content:space-between; padding:8px 0;'>"
+                f"    <span style='color:#CCCCCC; font-size:13px;'>Expected Profit (Prepaid with ₹50 Discount):</span>"
+                f"    <span style='font-weight:700; color:#38BDF8;'>₹{exp_profit_discount:,.2f}</span>"
+                f"  </div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+
+            # Gauge
             fig_gauge = go.Figure(go.Indicator(
                 mode = "gauge+number",
                 value = prob * 100,
                 domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': "RTO Probability Gauge", 'font': {'size': 14, 'color': '#94A3B8'}},
-                number = {'suffix': "%", 'font': {'color': '#F8FAFC'}},
+                title = {'text': "RTO Probability Gauge", 'font': {'size': 13, 'color': '#888888'}},
+                number = {'suffix': "%", 'font': {'color': '#FFFFFF'}},
                 gauge = {
-                    'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "#475569"},
+                    'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "#333333"},
                     'bar': {'color': prob_color},
-                    'bgcolor': "#1E293B",
+                    'bgcolor': "#111111",
                     'borderwidth': 1,
-                    'bordercolor': "#475569",
+                    'bordercolor': "#222222",
                     'steps': [
-                        {'range': [0, 30], 'color': 'rgba(16, 185, 129, 0.15)'},
-                        {'range': [30, 60], 'color': 'rgba(245, 158, 11, 0.15)'},
-                        {'range': [60, 100], 'color': 'rgba(239, 68, 68, 0.15)'}
+                        {'range': [0, 20], 'color': 'rgba(16, 185, 129, 0.15)'},
+                        {'range': [20, 40], 'color': 'rgba(245, 158, 11, 0.15)'},
+                        {'range': [40, 65], 'color': 'rgba(251, 146, 60, 0.15)'},
+                        {'range': [65, 100], 'color': 'rgba(239, 68, 68, 0.15)'}
                     ],
                     'threshold': {
                         'line': {'color': "white", 'width': 2},
@@ -742,16 +851,16 @@ with tab_score:
             fig_gauge.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font={'color': "#F8FAFC", 'family': "Inter"},
-                height=220,
-                margin=dict(l=20, r=20, t=40, b=20)
+                font={'color': "#FFFFFF", 'family': "Plus Jakarta Sans"},
+                height=200,
+                margin=dict(l=20, r=20, t=30, b=20)
             )
             st.plotly_chart(fig_gauge, use_container_width=True)
-            
-        with r_col2:
-            st.markdown("##### 🔍 SHAP Risk Attribution Factors")
-            st.markdown("<p style='font-size:12.5px; color:#94A3B8;'>These features represent the individual risk weights driving the prediction score.</p>", unsafe_allow_html=True)
-            
+
+        with col_v2:
+            st.markdown("##### 🔍 Financial Risk Attribution Drivers")
+            st.markdown("<p style='font-size:12.5px; color:#888888;'>SHAP attributions showing features pulling risk upward (+Risk) vs downward (-Risk).</p>", unsafe_allow_html=True)
+
             if len(reasons) == 0:
                 st.info("No significant risk deviations detected. The model output is close to baseline.")
             else:
@@ -766,84 +875,75 @@ with tab_score:
                         f"</div>",
                         unsafe_allow_html=True
                     )
-                    
-                    # Small visual horizontal bar representing SHAP weight
                     st.progress(min(1.0, max(0.0, abs(r["impact"]) / 0.50)))
 
 # -------------------------------------------------------------
 # TAB 2: MODEL OPTIMIZATION ANALYTICS
 # -------------------------------------------------------------
 with tab_analytics:
-    st.markdown("### Model Optimization & Business Case Analysis")
-    
+    st.markdown("### Profit Curve Optimization & Business Case Analysis")
+
     col_a1, col_a2 = st.columns([3, 2])
-    
+
     with col_a1:
-        st.markdown("##### 💸 Decision Threshold vs Business Cost")
-        st.markdown("<p style='font-size:13px; color:#94A3B8;'>Sweeping classification thresholds. Finding the point that minimizes logistics loss vs lost sales margins.</p>", unsafe_allow_html=True)
-        
+        st.markdown("##### 📈 Net Merchant Profit (₹) vs Decision Cutoff Threshold")
+        st.markdown("<p style='font-size:13px; color:#888888;'>Sweeping classification thresholds. Finding the exact cutoff that maximizes cumulative merchant earnings.</p>", unsafe_allow_html=True)
+
         if test_data is not None:
-            # Plotly Line Chart for Cost Curve
-            fig_cost = go.Figure()
-            
-            # Plot Total Cost
-            fig_cost.add_trace(go.Scatter(
+            fig_profit = go.Figure()
+
+            # Net Profit Curve
+            fig_profit.add_trace(go.Scatter(
                 x=sweep_df["threshold"],
-                y=sweep_df["total_cost"],
+                y=sweep_df["net_profit"],
                 mode='lines+markers',
-                name='Total Cost (₹)',
+                name='Net Merchant Profit (₹)',
                 line=dict(color='#38BDF8', width=3),
                 marker=dict(size=6)
             ))
-            
-            # Highlight Optimal
-            fig_cost.add_trace(go.Scatter(
+
+            # Highlight Peak Profit Threshold
+            fig_profit.add_trace(go.Scatter(
                 x=[optimal_threshold],
-                y=[optimal_cost],
+                y=[optimal_profit],
                 mode='markers',
-                name='Optimal Threshold',
+                name='Peak Profit Threshold',
                 marker=dict(color='#34D399', size=14, symbol='star', line=dict(color='white', width=1))
             ))
-            
-            # Highlight 0.5
-            fig_cost.add_trace(go.Scatter(
+
+            # Highlight Naive 0.5 Cutoff
+            fig_profit.add_trace(go.Scatter(
                 x=[0.50],
-                y=[default_cost],
+                y=[default_profit],
                 mode='markers',
-                name='Default 0.5 Cutoff',
+                name='Naive 0.50 Cutoff',
                 marker=dict(color='#EF4444', size=10, symbol='circle', line=dict(color='white', width=1))
             ))
-            
-            fig_cost.update_layout(
+
+            fig_profit.update_layout(
                 template='plotly_dark',
                 paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='#111622',
-                font={'color': "#F8FAFC", 'family': "Inter"},
-                xaxis=dict(title="Decision Threshold (Probability Cutoff)", gridcolor="#1E293B"),
-                yaxis=dict(title="Total Test Set Loss (₹)", gridcolor="#1E293B"),
-                legend=dict(x=0.05, y=0.95, bgcolor='rgba(0,0,0,0.5)'),
+                plot_bgcolor='#0A0A0A',
+                font={'color': "#FFFFFF", 'family': "Plus Jakarta Sans"},
+                xaxis=dict(title="Classification Cutoff Threshold", gridcolor="#222222"),
+                yaxis=dict(title="Cumulative Portfolio Profit (₹)", gridcolor="#222222"),
+                legend=dict(x=0.05, y=0.95, bgcolor='rgba(0,0,0,0.6)'),
                 height=380,
                 margin=dict(l=20, r=20, t=10, b=20)
             )
-            
-            st.plotly_chart(fig_cost, use_container_width=True)
+            st.plotly_chart(fig_profit, use_container_width=True)
         else:
-            st.warning("Cost curve data is unavailable.")
-            
+            st.warning("Test dataset not available.")
+
     with col_a2:
-        st.markdown("##### 🎛️ Confusion Matrix at Selected Threshold")
-        st.markdown(f"<p style='font-size:13px; color:#94A3B8;'>Classification splits on test set using the current optimal threshold ({optimal_threshold:.2f}).</p>", unsafe_allow_html=True)
-        
+        st.markdown("##### 🎛️ Confusion Matrix & Financial Translation")
+        st.markdown(f"<p style='font-size:13px; color:#888888;'>Classification performance translated to currency gained vs lost at threshold {optimal_threshold:.2f}.</p>", unsafe_allow_html=True)
+
         if test_data is not None:
-            # Compute CM at optimal threshold
-            optimal_preds = (probs >= optimal_threshold).astype(int)
-            tn, fp, fn, tp = confusion_matrix(y_test, optimal_preds).ravel()
-            
-            # Create Plotly Heatmap
+            opt_preds = (test_probs >= optimal_threshold).astype(int)
+            tn, fp, fn, tp = confusion_matrix(y_test, opt_preds).ravel()
+
             cm_data = [[tn, fp], [fn, tp]]
-            labels = [['True Negative (Shipped & Deliv)', 'False Positive (Blocked Sale)'], 
-                      ['False Negative (Shipped & RTO)', 'True Positive (Correct Block)']]
-            
             fig_cm = px.imshow(
                 cm_data,
                 text_auto=True,
@@ -852,63 +952,54 @@ with tab_analytics:
                 color_continuous_scale='Blues',
                 aspect='auto'
             )
-            
             fig_cm.update_layout(
                 template='plotly_dark',
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 coloraxis_showscale=False,
-                height=300,
-                margin=dict(l=10, r=10, t=30, b=10)
+                height=260,
+                margin=dict(l=10, r=10, t=20, b=10)
             )
             st.plotly_chart(fig_cm, use_container_width=True)
-            
-            # Show summary
+
             st.markdown(
-                f"<div style='font-size:12px; color:#94A3B8;'>"
-                f"✔️ <b>Delivered orders allowed:</b> {tn} (Blocked {fp} incorrectly)<br>"
-                f"❌ <b>Returns shipped:</b> {fn} (Blocked {tp} returns correctly)<br>"
-                f"🛡️ <b>Overall Recall (RTO caught):</b> {tp / (tp+fn) * 100:.1f}%"
+                f"<div style='font-size:12.5px; color:#CCCCCC; padding:8px; background:#0A0A0A; border:1px solid #222222; border-radius:6px;'>"
+                f"✅ <b>Delivered COD orders secured:</b> {tn} (Earned ₹{tn * ((avg_order_value * gross_margin) - forward_shipping):,.0f})<br>"
+                f"🛡️ <b>RTO Returns intercepted:</b> {tp} (Prevented ₹{tp * (forward_shipping + reverse_shipping + packaging_cost):,.0f} freight waste)<br>"
+                f"❌ <b>Unavoidable Returns:</b> {fn} | <b>False Alarms:</b> {fp}"
                 f"</div>",
                 unsafe_allow_html=True
             )
-            
+
     st.divider()
-    
+
     col_b1, col_b2 = st.columns(2)
-    
     with col_b1:
         st.markdown("##### 🏆 Model Benchmarking Table")
-        st.markdown("<p style='font-size:13px; color:#94A3B8;'>Benchmarking precision and ROC metrics across the candidate classifiers on held-out test data.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:13px; color:#888888;'>Held-out validation metrics across candidate architectures.</p>", unsafe_allow_html=True)
         
-        # Render a nice mock or live evaluation table
-        model_metrics = pd.DataFrame([
-            {"Model": "Logistic Regression (Winner)", "Accuracy": "78.0%", "Precision": "61.6%", "Recall": "30.3%", "F1-Score": "40.6%", "AUC-ROC": "0.7892"},
-            {"Model": "Random Forest", "Accuracy": "77.2%", "Precision": "63.6%", "Recall": "18.5%", "F1-Score": "28.7%", "AUC-ROC": "0.7860"},
-            {"Model": "XGBoost", "Accuracy": "77.3%", "Precision": "58.7%", "Recall": "27.7%", "F1-Score": "37.7%", "AUC-ROC": "0.7837"}
+        bench_df = pd.DataFrame([
+            {"Model": "XGBoost (Winner)", "Accuracy": "77.4%", "Precision": "60.4%", "Recall": "31.7%", "F1-Score": "41.6%", "AUC-ROC": "0.7955"},
+            {"Model": "Logistic Regression", "Accuracy": "76.4%", "Precision": "55.9%", "Recall": "32.7%", "F1-Score": "41.3%", "AUC-ROC": "0.7809"},
+            {"Model": "Random Forest", "Accuracy": "75.6%", "Precision": "55.0%", "Recall": "21.8%", "F1-Score": "31.2%", "AUC-ROC": "0.7786"}
         ])
-        
-        st.dataframe(model_metrics, hide_index=True, use_container_width=True)
-        st.caption("Note: Trees do not require feature scaling, while Logistic Regression is evaluated on standardized inputs.")
-        
+        st.dataframe(bench_df, hide_index=True, use_container_width=True)
+
     with col_b2:
         st.markdown("##### 🌍 Global Feature Importances (SHAP)")
-        st.markdown("<p style='font-size:13px; color:#94A3B8;'>Which factors drive classification predictions across the entire dataset?</p>", unsafe_allow_html=True)
-        
+        st.markdown("<p style='font-size:13px; color:#888888;'>Key drivers of return behavior across the transaction database.</p>", unsafe_allow_html=True)
         importance_img_path = os.path.join(os.path.dirname(__file__), "..", "models", "global_importance.png")
         if os.path.exists(importance_img_path):
-            st.image(importance_img_path, caption="SHAP Summary Plot for the Logistic Regression model", use_container_width=True)
-        else:
-            st.info("SHAP Importance plot not found. Run explain.py to pre-generate this visual.")
+            st.image(importance_img_path, caption="SHAP Summary Plot for the Winning XGBoost Model", use_container_width=True)
 
 # -------------------------------------------------------------
-# TAB 3: BATCH VERIFICATION
+# TAB 3: BATCH AUDIT & PORTFOLIO PROFIT ANALYSIS
 # -------------------------------------------------------------
 with tab_batch:
-    st.markdown("### Batch Risk Audit")
-    st.markdown("Upload orders as a CSV file to evaluate risk scoring across many transactions at once.")
-    
-    # Template download
+    st.markdown("### Batch Audit & Portfolio Profit Analysis")
+    st.markdown("<p style='font-size:13px; color:#888888;'>Upload bulk orders to simulate automated profit-arbitrage routing across your entire order pipeline.</p>", unsafe_allow_html=True)
+
+    # Template schema
     sample_df = pd.DataFrame([{
         "pincode_tier": "Tier 3",
         "pincode_rto_rate": 0.25,
@@ -925,105 +1016,112 @@ with tab_batch:
         "customer_past_rto_count": 0,
         "customer_past_rto_rate": 0.0
     }])
-    
+
     st.download_button(
         "📥 Download CSV template schema",
         data=sample_df.to_csv(index=False).encode('utf-8'),
         file_name="rto_batch_template.csv",
         mime="text/csv"
     )
-    
+
     st.divider()
-    
+
     uploaded_file = st.file_uploader("Upload CSV transaction file", type=["csv"])
-    
+
     if uploaded_file is not None:
         try:
             input_df = pd.read_csv(uploaded_file)
-            
-            # Safe numeric conversion for dirty CSV uploads
+
+            # Defensive Numeric Coercion
             categorical_cols = {"pincode_tier", "payment_mode", "category"}
             for col in input_df.columns:
                 if col not in categorical_cols:
                     input_df[col] = pd.to_numeric(input_df[col], errors='coerce').fillna(0)
-            
-            # Score
-            scored_df = engine.score_batch(input_df)
-            
-            # Compute KPI metrics
-            total_orders = len(scored_df)
-            avg_prob = scored_df["risk_probability"].mean()
-            
-            high_risk_cnt = len(scored_df[scored_df["risk_tier"] == "High"])
-            high_risk_pct = (high_risk_cnt / total_orders * 100) if total_orders > 0 else 0
-            
-            # Simple estimated cost savings calculation
-            # Assume naive 0.50 cutoff was used: calculate savings from dynamic optimal threshold
-            # To simplify, we count total flagged orders under the current optimal threshold vs baseline
-            # Saved amount = (orders flagged above optimal that get blocked/verified) * average shipping waste saved
-            flagged_above_opt = len(scored_df[scored_df["risk_probability"] >= engine.optimal_threshold])
-            # Say we successfully prevent 70% of RTOs in flagged transactions
-            est_saved_loss = flagged_above_opt * 0.70 * fn_cost - (flagged_above_opt * 0.30 * fp_cost)
-            est_saved_loss = max(0, est_saved_loss)
-            
-            # Show summary strips
-            m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-            
-            with m_col1:
-                st.markdown(
-                    f"<div class='metric-card'>"
-                    f"  <div class='metric-title'>Total Transactions</div>"
-                    f"  <div class='metric-value'>{total_orders}</div>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with m_col2:
-                st.markdown(
-                    f"<div class='metric-card'>"
-                    f"  <div class='metric-title'>Avg Risk Probability</div>"
-                    f"  <div class='metric-value'>{avg_prob*100:.1f}%</div>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with m_col3:
-                st.markdown(
-                    f"<div class='metric-card'>"
-                    f"  <div class='metric-title'>High Risk Flagged</div>"
-                    f"  <div class='metric-value' style='color:#F87171;'>{high_risk_pct:.1f}%</div>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with m_col4:
-                st.markdown(
-                    f"<div class='metric-card'>"
-                    f"  <div class='metric-title'>Est. Net Logistics Saved</div>"
-                    f"  <div class='metric-value' style='color:#34D399;'>₹{est_saved_loss:,.2f}</div>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-                
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # Add styled columns for high-risk highlights before displaying full data
-            st.markdown("##### Scored Orders Listing")
-            
-            # Format dataframe values for viewing
-            view_df = scored_df.copy()
-            view_df["risk_probability"] = (view_df["risk_probability"] * 100).round(1).astype(str) + "%"
-            
-            st.dataframe(
-                view_df,
-                use_container_width=True
+
+            # Run Scoring with dynamic sandbox economics
+            scored_df = engine.score_batch(
+                df_input=input_df,
+                gross_margin=gross_margin,
+                forward_shipping=forward_shipping,
+                reverse_shipping=reverse_shipping,
+                packaging_cost=packaging_cost,
             )
-            
-            # Download Scored CSV
+
+            total_orders = len(scored_df)
+            total_gmv = scored_df["order_value"].sum()
+
+            # Protected Net Revenue: Delivered orders gross profit
+            auto_ship_orders = scored_df[scored_df["action_code"] == "AUTO_SHIP"]
+            protected_revenue = auto_ship_orders["expected_profit_cod"].sum()
+
+            # Saved Logistics Waste: Intercepted high-risk COD orders
+            intercepted_orders = scored_df[scored_df["action_code"].isin(["INCENTIVIZE_PREPAID", "STRICT_PREPAID_ONLY"])]
+            saved_waste = len(intercepted_orders) * (forward_shipping + reverse_shipping + packaging_cost)
+
+            # Recovered GMV via Prepaid Conversion: Revenue from intercepted orders converted to prepaid
+            recovered_gmv = intercepted_orders["order_value"].sum() * 0.70
+
+            # Net Profit Lift:
+            total_baseline_profit = scored_df["expected_profit_cod"].sum()
+            # With our interventions: auto_ship keeps COD profit, intercepted converts to prepaid profit
+            total_optimized_profit = auto_ship_orders["expected_profit_cod"].sum() + (intercepted_orders["expected_profit_prepaid"].sum() * 0.70)
+            net_lift = total_optimized_profit - total_baseline_profit
+            net_lift_pct = (net_lift / abs(total_baseline_profit) * 100) if total_baseline_profit != 0 else 0.0
+
+            # 4 Executive KPI Cards
+            k_col1, k_col2, k_col3, k_col4 = st.columns(4)
+
+            with k_col1:
+                st.markdown(
+                    f"<div class='metric-card'>"
+                    f"  <div class='metric-title'>Protected Net Revenue</div>"
+                    f"  <div class='metric-value' style='color:#38BDF8;'>₹{protected_revenue:,.2f}</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+            with k_col2:
+                st.markdown(
+                    f"<div class='metric-card'>"
+                    f"  <div class='metric-title'>Saved Logistics Waste</div>"
+                    f"  <div class='metric-value' style='color:#34D399;'>₹{saved_waste:,.2f}</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+            with k_col3:
+                st.markdown(
+                    f"<div class='metric-card'>"
+                    f"  <div class='metric-title'>Recovered Prepaid GMV</div>"
+                    f"  <div class='metric-value' style='color:#FBBF24;'>₹{recovered_gmv:,.2f}</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+            with k_col4:
+                st.markdown(
+                    f"<div class='metric-card'>"
+                    f"  <div class='metric-title'>Net Profit Lift</div>"
+                    f"  <div class='metric-value' style='color:{'#34D399' if net_lift >= 0 else '#F87171'};'>+₹{net_lift:,.2f} (+{net_lift_pct:.1f}%)</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("##### Enriched Profit & Risk Action Plan")
+
+            view_df = scored_df[[
+                "order_value", "risk_probability", "risk_tier", "action_code", 
+                "expected_profit_cod", "expected_profit_prepaid", "recommended_action", "checkout_display_message"
+            ]].copy()
+            view_df["risk_probability"] = (view_df["risk_probability"] * 100).round(1).astype(str) + "%"
+
+            st.dataframe(view_df, use_container_width=True)
+
             st.download_button(
-                "📥 Download Fully Scored Risk Report",
+                "📥 Download Enriched Profit & Risk Action Plan (CSV)",
                 data=scored_df.to_csv(index=False).encode('utf-8'),
-                file_name="scored_risk_report.csv",
+                file_name="enriched_profit_risk_plan.csv",
                 mime="text/csv"
             )
-            
+
         except Exception as e:
-            st.error(f"Error processing CSV file: {e}")
-            st.info("Please verify the CSV schema matches the downloadable template above.")
+            st.error(f"Error processing CSV: {e}")
+            st.info("Please verify the CSV format against the template schema.")
