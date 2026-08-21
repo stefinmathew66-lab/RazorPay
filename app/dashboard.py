@@ -80,9 +80,14 @@ st.markdown("""
         letter-spacing: -0.01em;
     }
 
-    /* Force markdown p tags to stand out with slate light color */
-    div[data-testid="stMarkdownContainer"] p {
-        color: #94A3B8 !important;
+    /* Force all markdown container text, spans, and captions to stand out in light slate */
+    div[data-testid="stMarkdownContainer"], 
+    div[data-testid="stMarkdownContainer"] span, 
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stCaptionContainer"],
+    .stCaption,
+    .stMarkdown p {
+        color: #CCCCCC !important;
     }
 
     /* Headers text color override with strong visibility */
