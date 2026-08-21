@@ -109,16 +109,65 @@ st.markdown("""
         padding: 16px !important;
         border-left: 4px solid #38BDF8 !important;
     }
+    
+    /* Ensure high contrast in the sidebar for the threshold card specifically */
+    [data-testid="stSidebar"] .threshold-card p,
     .threshold-card p {
         margin: 0 !important;
         color: #F8FAFC !important;
     }
+    
+    [data-testid="stSidebar"] .threshold-card p.card-label,
     .threshold-card p.card-label {
         color: #888888 !important;
         font-size: 11px !important;
         font-weight: 600 !important;
         letter-spacing: 0.05em !important;
         text-transform: uppercase !important;
+    }
+
+    [data-testid="stSidebar"] .threshold-card p.threshold-val,
+    .threshold-card p.threshold-val {
+        color: #38BDF8 !important;
+        font-size: 26px !important;
+        font-weight: 700 !important;
+        margin: 0 0 10px 0 !important;
+    }
+
+    [data-testid="stSidebar"] .threshold-card p.savings-val,
+    .threshold-card p.savings-val {
+        color: #34D399 !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        margin: 0 !important;
+    }
+
+    /* Style default Streamlit Deploy button to be a white button with black text */
+    [data-testid="stAppDeployButton"] button,
+    button[data-testid="stBaseButton-header"],
+    [data-testid="stAppDeployButton"] [data-testid="stBaseButton-header"] {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        border: 1px solid #FFFFFF !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    [data-testid="stAppDeployButton"] button:hover,
+    button[data-testid="stBaseButton-header"]:hover,
+    [data-testid="stAppDeployButton"] [data-testid="stBaseButton-header"]:hover {
+        background-color: #E2E8F0 !important;
+        border-color: #E2E8F0 !important;
+        color: #000000 !important;
+        transform: translateY(-1px);
+    }
+    
+    [data-testid="stAppDeployButton"] button p,
+    button[data-testid="stBaseButton-header"] p,
+    [data-testid="stAppDeployButton"] button span {
+        color: #000000 !important;
+        font-weight: 600 !important;
     }
 
     /* Vercel styling for secondary and primary buttons */
@@ -480,9 +529,9 @@ if test_data is not None and engine is not None:
     st.sidebar.markdown(
         f"<div class='threshold-card'>"
         f"  <p class='card-label'>OPTIMIZED THRESHOLD</p>"
-        f"  <p style='margin:0 0 10px 0; font-size:24px; font-weight:700; color:#38BDF8;'>{optimal_threshold:.2f}</p>"
+        f"  <p class='threshold-val'>{optimal_threshold:.2f}</p>"
         f"  <p class='card-label'>ESTIMATED SAVINGS VS 0.50 CUTOFF</p>"
-        f"  <p style='margin:0; font-size:16px; font-weight:600; color:#34D399;'>₹{savings:,.2f} ({pct_savings:.1f}%)</p>"
+        f"  <p class='savings-val'>₹{savings:,.2f} ({pct_savings:.1f}%)</p>"
         f"</div>",
         unsafe_allow_html=True
     )
