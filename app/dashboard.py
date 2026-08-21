@@ -27,14 +27,18 @@ st.set_page_config(
 # -------------------------------------------------------------
 st.markdown("""
 <style>
-    /* Vercel Geist Design System - Dark Mode Specification */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    /* Modern Premium Typography - Plus Jakarta Sans & Inter */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
     
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+    * {
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
     }
     
-    .stApp {
+    html, body, [class*="css"], .stApp {
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
         background-color: #000000;
     }
 
@@ -194,29 +198,39 @@ st.markdown("""
     }
     
     /* Vercel Primary Button style (solid white button with black text) */
-    button[kind="primary"], [data-testid="stBaseButton-primary"] {
+    button[kind="primary"], [data-testid="stBaseButton-primary"], .stButton button[kind="primary"] {
         background-color: #FFFFFF !important;
         color: #000000 !important;
         border: 1px solid #FFFFFF !important;
-        border-radius: 6px !important;
+        border-radius: 8px !important;
         font-weight: 600 !important;
-        font-size: 14px !important;
-        transition: all 0.2s ease !important;
+        font-size: 15px !important;
+        letter-spacing: -0.01em !important;
+        padding: 10px 24px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+        transition: all 0.18s ease-in-out !important;
     }
 
-    button[kind="primary"]:hover, [data-testid="stBaseButton-primary"]:hover {
-        background-color: #E2E8F0 !important;
+    button[kind="primary"]:hover, [data-testid="stBaseButton-primary"]:hover, .stButton button[kind="primary"]:hover {
+        background-color: #F1F5F9 !important;
         color: #000000 !important;
-        border-color: #E2E8F0 !important;
-        transform: translateY(-1px);
+        border-color: #F1F5F9 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2) !important;
     }
     
     /* Ensure text inside buttons is styled correctly */
     button p, [data-testid="stBaseButton-secondary"] p {
         color: #FFFFFF !important;
     }
-    button[kind="primary"] p, [data-testid="stBaseButton-primary"] p {
+    button[kind="primary"] p, [data-testid="stBaseButton-primary"] p,
+    button[kind="primary"] span, [data-testid="stBaseButton-primary"] span,
+    button[kind="primary"] div, [data-testid="stBaseButton-primary"] div {
         color: #000000 !important;
+        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 15px !important;
+        letter-spacing: -0.01em !important;
     }
 
     /* Sidebar Chevron Expand/Collapse Arrow Visibility Fix */
@@ -629,7 +643,7 @@ with tab_score:
         st.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True) # visual spacer
 
     st.markdown("<br>", unsafe_allow_html=True)
-    score_btn = st.button("🚀 Analyze Risk Profile", use_container_width=True, type="primary")
+    score_btn = st.button("Analyze Risk Profile", use_container_width=True, type="primary")
     
     if score_btn:
         # Build order dict
