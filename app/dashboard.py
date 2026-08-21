@@ -92,6 +92,26 @@ st.markdown("""
     h1, h2, h3, h4, h5, h6 {
         color: #F8FAFC !important;
     }
+
+    /* Style all Streamlit buttons consistently (dark theme style) */
+    button, [data-testid="stBaseButton-secondary"], [data-testid="stBaseButton-primary"], [data-testid="stBaseButton-headerNoPadding"] {
+        background-color: #1E293B !important;
+        color: #F8FAFC !important;
+        border: 1px solid #334155 !important;
+        border-radius: 6px !important;
+        transition: background-color 0.2s ease, border-color 0.2s ease !important;
+    }
+    
+    button:hover, [data-testid="stBaseButton-secondary"]:hover, [data-testid="stBaseButton-primary"]:hover {
+        background-color: #334155 !important;
+        border-color: #475569 !important;
+        color: #FFFFFF !important;
+    }
+    
+    /* Ensure text inside buttons is white and legible */
+    button p, [data-testid="stBaseButton-secondary"] p, [data-testid="stBaseButton-primary"] p {
+        color: #F8FAFC !important;
+    }
     
     /* Header Container styling */
     .header-container {
