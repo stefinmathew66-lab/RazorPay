@@ -45,6 +45,32 @@ class RiskEngine:
         
         return df
 
+    def apply_rule_overrides(self, order: dict, base_prob: float) -> tuple[float, str]:
+        """
+        Applies merchant fraud rule overrides on top of raw ML model probabilities.
+        Returns: (final_probability, override_reason or None)
+        """
+        # Rule 1: High frequency repeat offender block
+        past_orders = int(order.get("customer_past_orders", 0))
+        past_rto_rate = float(order.get("customer_past_rto_rate", 0.0))
+        if past_orders >= 3 and past_rto_rate >= 0.66:
+            return 0.98, "High-Frequency Repeat Offender (RTO Rate >= 66% on 3+ past orders)"
+            
+        # Rule 2: High value mismatch flag
+        order_val = float(order.get("order_value", 0.0))
+        pin_match = int(order.get("pin_matches_city", 1))
+        if pin_match == 0 and order_val >= 5000:
+            return max(base_prob, 0.85), "High-Value Transaction Address Mismatch (Value >= ₹5,000 & Pincode/City Mismatch)"
+            
+        # Rule 3: COD Exploitation check (large COD order on fresh customer with short address)
+        payment_mode = str(order.get("payment_mode", "Prepaid"))
+        addr_len = int(order.get("address_length", 100))
+        tenure = int(order.get("customer_tenure_days", 365))
+        if payment_mode == "COD" and order_val >= 7500 and addr_len < 30 and tenure <= 7:
+            return max(base_prob, 0.90), "COD Exploitation Risk (High-Value COD order on brand-new profile with incomplete address)"
+
+        return base_prob, None
+
     def score_batch(self, df_input: pd.DataFrame) -> pd.DataFrame:
         """
         Scores a batch of orders.
@@ -65,9 +91,29 @@ class RiskEngine:
         df_output = df_input.copy()
         df_output["risk_probability"] = probs.round(4)
         
+        # Apply rule overrides row-by-row
+        final_probs = []
+        override_reasons = []
+        
+        for idx, row in df_output.iterrows():
+            row_dict = row.to_dict()
+            final_p, reason = self.apply_rule_overrides(row_dict, row_dict["risk_probability"])
+            final_probs.append(final_p)
+            override_reasons.append(reason)
+            
+        df_output["risk_probability"] = final_probs
+        df_output["rule_override_reason"] = override_reasons
+        
         # Map probabilities to tiers and actions
         df_output["risk_tier"] = df_output["risk_probability"].apply(self._get_risk_tier)
-        df_output["recommended_action"] = df_output["risk_probability"].apply(self._get_recommended_action)
+        
+        actions = []
+        for idx, row in df_output.iterrows():
+            act = self._get_recommended_action(row["risk_probability"])
+            if row["rule_override_reason"]:
+                act = f"{act} (Override: {row['rule_override_reason']})"
+            actions.append(act)
+        df_output["recommended_action"] = actions
         
         return df_output
 
@@ -83,6 +129,7 @@ class RiskEngine:
         scored_row = df_scored.iloc[0]
         
         prob = float(scored_row["risk_probability"])
+        override_reason = scored_row["rule_override_reason"]
         
         # Extract risk factors (to be populated in detail in explain.py)
         # We define a placeholder here that gets enhanced by explain.py if needed
@@ -91,8 +138,9 @@ class RiskEngine:
         return {
             "risk_probability": prob,
             "risk_tier": self._get_risk_tier(prob),
-            "recommended_action": self._get_recommended_action(prob),
+            "recommended_action": scored_row["recommended_action"],
             "optimal_threshold": self.optimal_threshold,
+            "override_reason": override_reason if pd.notna(override_reason) else None,
             "top_risk_factors": risk_factors
         }
         

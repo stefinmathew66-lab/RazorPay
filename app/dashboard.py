@@ -41,6 +41,23 @@ st.markdown("""
     .stApp {
         background-color: #0B0E14;
     }
+
+    /* Target widget label text specifically for high-contrast visibility */
+    div[data-testid="stWidgetLabel"] p, label, .stWidgetLabel, [data-testid="stWidgetLabel"] label {
+        color: #E2E8F0 !important;
+        font-weight: 500 !important;
+        font-size: 14px !important;
+    }
+
+    /* Force markdown p tags to stand out with slate light color */
+    div[data-testid="stMarkdownContainer"] p {
+        color: #CBD5E1 !important;
+    }
+
+    /* Headers text color override */
+    h1, h2, h3, h4, h5, h6 {
+        color: #F8FAFC !important;
+    }
     
     /* Header Container styling */
     .header-container {
@@ -281,7 +298,10 @@ else:
 # MAIN APP HEADER
 # -------------------------------------------------------------
 st.markdown(
-    f"<div class='header-container'>"
+    f"<div class='header-container' style='position: relative;'>"
+    f"  <div style='position: absolute; top: 24px; right: 24px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: #38BDF8; font-weight: 600;'>"
+    f"    💻 Developer REST API: ACTIVE (Port 8000)"
+    f"  </div>"
     f"  <div class='header-title'>🛡️ Razorpay RTO Risk-Ops Control Center</div>"
     f"  <p class='header-subtitle'>AI Risk Manager — Return-Risk Scorer for D2C cash-on-delivery and prepaid transactions. Judged track 2 build.</p>"
     f"</div>",
@@ -384,6 +404,10 @@ with tab_score:
         r_col1, r_col2 = st.columns([2, 3])
         
         with r_col1:
+            override_html = ""
+            if score_res.get("override_reason"):
+                override_html = f"<div style='margin-top: 15px; padding: 10px; background-color: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; font-size: 11px; color: #FCA5A5;'>⚠️ <b>Fraud Override:</b> {score_res['override_reason']}</div>"
+                
             st.markdown(
                 f"<div class='result-card {card_class}'>"
                 f"  <p style='margin:0; font-size:12.5px; color:#94A3B8; font-weight:600;'>RISK SCORE VERDICT</p>"
@@ -392,7 +416,8 @@ with tab_score:
                 f"    <span class='pill-badge {pill_class}'>{tier} Risk</span>"
                 f"  </div>"
                 f"  <p style='margin:10px 0 0 0; font-size:13.5px; color:#94A3B8; font-weight:500;'>RECOMMENDED POLICY ACTION</p>"
-                f"  <p style='margin:2px 0 0 0; font-size:18px; font-weight:700; color:#F8FAFC;'>{action}</p>"
+                f"  <p style='margin:2px 0 0 0; font-size:16px; font-weight:700; color:#F8FAFC;'>{action}</p>"
+                f"  {override_html}"
                 f"  <p style='margin:15px 0 0 0; font-size:11px; color:#64748B;'>Decision optimized for threshold: {engine.optimal_threshold:.2f}</p>"
                 f"</div>",
                 unsafe_allow_html=True
