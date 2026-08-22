@@ -16,6 +16,44 @@ The Razorpay RTO Risk-Ops Engine re-architects risk management into an automated
 
 ---
 
+## System Architecture and Decision Flowchart
+
+The diagram below illustrates the end-to-end processing pipeline from incoming cart session to real-time dynamic checkout routing and risk-ops analytics:
+
+```mermaid
+flowchart TD
+    subgraph IN["1. Incoming Checkout Session"]
+        A["Cart & Order Context<br/>(Order Value, Pincode, Address, Category)"]
+        B["Customer History Profile<br/>(Tenure, Past Orders, Historical RTO Rate)"]
+        C["Merchant Unit Economics<br/>(Margin %, Forward/Reverse Freight, Packaging Loss)"]
+    end
+
+    subgraph ENG["2. Razorpay Risk & Decision Engine"]
+        D{"Heuristic Fraud Safeguards"}
+        D -->|"Hard Fraud Match<br/>(Repeat Offender / High-Value Mismatch)"| OV["High Risk Override<br/>(P >= 0.75 - 0.98)"]
+        D -->|"Pass Heuristics"| ML["XGBoost Classifier Model<br/>(14 Engineered Risk Signals)"]
+        
+        ML --> SHAP["TreeSHAP Explainability<br/>(Attribution Drivers)"]
+        ML & OV --> ARB["Margin-Aware Profit Arbitrage<br/>Expected Net Profit (COD vs. Prepaid)"]
+    end
+
+    subgraph DEC["3. Dynamic Conversion Routing"]
+        ARB -->|"P < 0.25"| T1["GREEN: Auto-Ship<br/>1-Click Pre-Approved COD"]
+        ARB -->|"0.25 <= P < 0.45"| T2["YELLOW: Address Fix<br/>COD Allowed + WhatsApp OTP Link"]
+        ARB -->|"0.45 <= P < 0.75"| T3["ORANGE: Prepaid Incentive<br/>Rs 50 UPI Discount + COD Fallback"]
+        ARB -->|"P >= 0.75"| T4["RED: Strict Prepaid Only<br/>COD Unavailable at Pincode"]
+    end
+
+    subgraph OUT["4. Merchant & Buyer Interface"]
+        T1 & T2 & T3 & T4 --> SDK["Razorpay Standard Checkout SDK<br/>(Dynamic Payment Routing Modal)"]
+        T1 & T2 & T3 & T4 --> DASH["Razorpay Risk-Ops Control Center<br/>(FastAPI REST + Real-Time ROI Analytics)"]
+    end
+
+    IN --> ENG
+```
+
+---
+
 ## Mathematical Formulation: Margin-Aware Expected Net Profit
 
 Standard classification models optimize for statistical metrics like F1-score or accuracy under arbitrary 0.50 probability cutoffs. In real-world commerce, the financial cost of a false positive (canceling a good sale) differs significantly from a false negative (dispatching a failed COD delivery).
