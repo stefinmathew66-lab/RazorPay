@@ -21,35 +21,31 @@ The Razorpay RTO Risk-Ops Engine re-architects risk management into an automated
 The diagram below illustrates the end-to-end processing pipeline from incoming cart session to real-time dynamic checkout routing and risk-ops analytics:
 
 ```mermaid
-flowchart TD
-    subgraph IN["1. Incoming Checkout Session"]
-        A["Cart & Order Context<br/>(Order Value, Pincode, Address, Category)"]
-        B["Customer History Profile<br/>(Tenure, Past Orders, Historical RTO Rate)"]
-        C["Merchant Unit Economics<br/>(Margin %, Forward/Reverse Freight, Packaging Loss)"]
-    end
+graph TD
+    classDef inputStyle fill:#1E293B,stroke:#38BDF8,stroke-width:1.5px,color:#F8FAFC;
+    classDef engineStyle fill:#0F172A,stroke:#64748B,stroke-width:1.5px,color:#F8FAFC;
+    classDef greenTier fill:#064E3B,stroke:#34D399,stroke-width:1.5px,color:#ECFDF5;
+    classDef yellowTier fill:#78350F,stroke:#FBBF24,stroke-width:1.5px,color:#FFFBEB;
+    classDef orangeTier fill:#7C2D12,stroke:#FB923C,stroke-width:1.5px,color:#FFF7ED;
+    classDef redTier fill:#7F1D1D,stroke:#F87171,stroke-width:1.5px,color:#FEF2F2;
+    classDef outStyle fill:#1E293B,stroke:#818CF8,stroke-width:1.5px,color:#F8FAFC;
 
-    subgraph ENG["2. Razorpay Risk & Decision Engine"]
-        D{"Heuristic Fraud Safeguards"}
-        D -->|"Hard Fraud Match<br/>(Repeat Offender / High-Value Mismatch)"| OV["High Risk Override<br/>(P >= 0.75 - 0.98)"]
-        D -->|"Pass Heuristics"| ML["XGBoost Classifier Model<br/>(14 Engineered Risk Signals)"]
-        
-        ML --> SHAP["TreeSHAP Explainability<br/>(Attribution Drivers)"]
-        ML & OV --> ARB["Margin-Aware Profit Arbitrage<br/>Expected Net Profit (COD vs. Prepaid)"]
-    end
+    A["Order Context & Customer History Profile<br/>(Cart Value, Address Length, Location Tier, Historical Return Rate)"]:::inputStyle
+    B["Risk Engine & ML Scoring Pipeline<br/>(Heuristic Fraud Safeguards + XGBoost Model + TreeSHAP Attributions)"]:::engineStyle
+    C["Margin-Aware Expected Net Profit Calculation<br/>(Expected Profit COD vs. Expected Profit Prepaid)"]:::engineStyle
 
-    subgraph DEC["3. Dynamic Conversion Routing"]
-        ARB -->|"P < 0.25"| T1["GREEN: Auto-Ship<br/>1-Click Pre-Approved COD"]
-        ARB -->|"0.25 <= P < 0.45"| T2["YELLOW: Address Fix<br/>COD Allowed + WhatsApp OTP Link"]
-        ARB -->|"0.45 <= P < 0.75"| T3["ORANGE: Prepaid Incentive<br/>Rs 50 UPI Discount + COD Fallback"]
-        ARB -->|"P >= 0.75"| T4["RED: Strict Prepaid Only<br/>COD Unavailable at Pincode"]
-    end
+    A --> B
+    B --> C
 
-    subgraph OUT["4. Merchant & Buyer Interface"]
-        T1 & T2 & T3 & T4 --> SDK["Razorpay Standard Checkout SDK<br/>(Dynamic Payment Routing Modal)"]
-        T1 & T2 & T3 & T4 --> DASH["Razorpay Risk-Ops Control Center<br/>(FastAPI REST + Real-Time ROI Analytics)"]
-    end
+    C -->|"P < 0.25"| T1["GREEN: Auto-Ship<br/>1-Click Pre-Approved COD"]:::greenTier
+    C -->|"0.25 <= P < 0.45"| T2["YELLOW: Address Fix<br/>COD Allowed + WhatsApp OTP"]:::yellowTier
+    C -->|"0.45 <= P < 0.75"| T3["ORANGE: Prepaid Nudge<br/>Rs 50 UPI Discount + COD Fallback"]:::orangeTier
+    C -->|"P >= 0.75 / Fraud"| T4["RED: Strict Prepaid<br/>COD Unavailable at Pincode"]:::redTier
 
-    IN --> ENG
+    T1 --> D["Razorpay Dynamic Checkout SDK & Risk-Ops Control Center"]:::outStyle
+    T2 --> D
+    T3 --> D
+    T4 --> D
 ```
 
 ---
