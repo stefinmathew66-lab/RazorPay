@@ -114,6 +114,30 @@ Local feature attributions are computed in real time using TreeSHAP, translating
 
 ---
 
+## Engineering Challenges: What Broke and How We Got Out
+
+> Real-world risk and checkout engineering is fraught with subtle landmines. Below are three major failure modes encountered during development, along with the architectural solutions implemented to build a production-hardened system:
+
+### 1. The Leakage Trap
+* **The Breakdown:** During initial training, the model achieved an unrealistic **99.8% AUC**. Investigation revealed that the synthetic ground-truth probability (`_true_risk_prob`) and high-cardinality order IDs were accidentally present in the feature matrix.
+* **How We Got Out:** We stripped these internal generators and non-generalizable identifiers, rebuilding a strict 80/20 stratified pipeline fitted solely on observed merchant proxies with zero test exposure.
+
+### 2. The Arbitrary 0.50 Threshold Flaw
+* **The Breakdown:** Standard 0.50 cutoffs rejected high-intent buyers, destroying Customer Acquisition Cost (CAC) and forfeiting merchant GMV on legitimate shoppers who simply prefer cash on delivery.
+* **How We Got Out:** We shifted from naive probability thresholding to dynamic **Margin-Aware Expected Net Profit optimization**, introducing the **₹50 UPI prepaid incentive tier** to convert borderline at-risk orders into guaranteed prepaid sales rather than canceling them.
+
+### 3. Unseen Categorical Drift & Dirty Ingestion
+* **The Breakdown:** Legacy `LabelEncoder` implementations threw runtime exceptions (`ValueError: unseen labels`) when presented with new pincode tiers, unmapped categories, or corrupted merchant CSV uploads.
+* **How We Got Out:** We re-engineered preprocessing using robust dictionary maps with default median and sentinel fallbacks (`-1`) to guarantee **zero runtime crashes** on dirty CSV uploads and arbitrary real-time API inputs.
+
+| Challenge | Root Cause / Failure Mode | Production Engineering Resolution | Business & System Impact |
+| :--- | :--- | :--- | :--- |
+| **Leakage Trap** | `_true_risk_prob` & order IDs in feature matrix (false 99.8% AUC) | Rebuilt isolated 80/20 stratified pipeline on merchant proxies | True generalization & realistic 0.7955 AUC |
+| **0.50 Threshold Flaw** | Standard cutoffs rejecting high-intent buyers & burning CAC | Shifted to dynamic Margin-Aware Expected Net Profit optimization | ₹50 UPI nudge converts borderline at-risk orders |
+| **Categorical Drift** | `LabelEncoder` crashing on unseen categories / dirty CSVs | Defensive dictionary maps with median & sentinel (`-1`) fallbacks | Zero runtime crashes across batch & real-time API |
+
+---
+
 ## Repository Structure
 
 ```text
