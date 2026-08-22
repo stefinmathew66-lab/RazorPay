@@ -114,7 +114,7 @@ Local feature attributions are computed in real time using TreeSHAP, translating
 
 ---
 
-## Engineering Challenges: What Broke and How We Got Out
+## Engineering Challenges: What Broke and How I Got Out
 
 > Real-world risk and checkout engineering is fraught with subtle landmines. Below are three major failure modes encountered during development, along with the architectural solutions implemented to build a production-hardened system:
 
