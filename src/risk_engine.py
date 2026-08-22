@@ -129,16 +129,31 @@ class RiskEngine:
         self, row: pd.Series, base_prob: float
     ) -> Tuple[float, Optional[str]]:
         """
-        Applies high-confidence merchant fraud safeguards.
+        Applies high-confidence merchant fraud safeguards defensively.
         Returns: (final_probability, override_reason)
         """
-        past_orders = int(row.get("customer_past_orders", 0))
-        past_rto_rate = float(row.get("customer_past_rto_rate", 0.0))
-        order_val = float(row.get("order_value", 0.0))
-        pin_match = int(row.get("pin_matches_city", 1))
-        payment_mode = str(row.get("payment_mode", "Prepaid"))
-        addr_len = int(row.get("address_length", 100))
-        tenure = int(row.get("customer_tenure_days", 365))
+        def safe_int(val, default=0):
+            try:
+                return int(float(val)) if pd.notna(val) else default
+            except (ValueError, TypeError):
+                return default
+
+        def safe_float(val, default=0.0):
+            try:
+                return float(val) if pd.notna(val) else default
+            except (ValueError, TypeError):
+                return default
+
+        def safe_str(val, default=""):
+            return str(val) if pd.notna(val) else default
+
+        past_orders = safe_int(row.get("customer_past_orders"), 0)
+        past_rto_rate = safe_float(row.get("customer_past_rto_rate"), 0.0)
+        order_val = safe_float(row.get("order_value"), 0.0)
+        pin_match = safe_int(row.get("pin_matches_city"), 1)
+        payment_mode = safe_str(row.get("payment_mode"), "Prepaid")
+        addr_len = safe_int(row.get("address_length"), 100)
+        tenure = safe_int(row.get("customer_tenure_days"), 365)
 
         # Rule 1: High-frequency repeat offender
         if past_orders >= 3 and past_rto_rate >= 0.66:
@@ -227,12 +242,12 @@ class RiskEngine:
             discount_inr=50.0,
         )
 
-        # 1. RED PATH: Severe risk or hard fraud override
-        if override_reason is not None or prob >= 0.65 or (exp_profit_cod < -50.0 and exp_profit_prepaid > 0):
+        # 1. RED PATH: Severe risk or hard fraud override (Only true repeat offenders / extreme fraud)
+        if override_reason is not None or prob >= 0.75:
             action_code = "STRICT_PREPAID_ONLY"
             recommended_action = "COD Block / Strict Prepaid Only"
             action_payload = {
-                "display_message": "COD disabled due to high return risk profile. Order eligible strictly via prepaid checkout.",
+                "display_message": "Cash on Delivery is not available at your pincode. Please complete your order via secure online payment.",
                 "suggested_discount_inr": 0,
                 "allow_cod": False,
                 "require_otp_verification": True,
@@ -241,26 +256,26 @@ class RiskEngine:
             }
             risk_tier = "High"
 
-        # 2. ORANGE PATH: COD unprofitable or risky, but Prepaid conversion yields solid profit
-        elif prob >= 0.35 or exp_profit_cod <= 20.0:
+        # 2. ORANGE PATH: High COD risk -> Soft Prepaid Nudge (Offer ₹50 UPI discount, COD available as fallback)
+        elif prob >= 0.45 or exp_profit_cod <= 0.0:
             action_code = "INCENTIVIZE_PREPAID"
-            recommended_action = "Prepaid Conversion Incentive (₹50 UPI Discount)"
+            recommended_action = "Prepaid Conversion Incentive (₹50 UPI Discount • COD Fallback Open)"
             action_payload = {
-                "display_message": "Pay via UPI/Card now & get flat ₹50 instant discount + priority dispatch.",
+                "display_message": "Pay via UPI to get ₹50 instant discount + free priority shipping (or continue with COD).",
                 "suggested_discount_inr": 50,
-                "allow_cod": False,
-                "require_otp_verification": True,
+                "allow_cod": True,
+                "require_otp_verification": False,
                 "action_color": "#FB923C",
                 "badge": "ORANGE"
             }
             risk_tier = "Medium-High"
 
-        # 3. YELLOW PATH: Borderline risk, recoverable via automated verification
-        elif prob >= self.optimal_threshold:
+        # 3. YELLOW PATH: Borderline risk -> 100% COD Allowed with automated WhatsApp OTP address verification
+        elif prob >= 0.25:
             action_code = "VERIFY_ADDRESS_OTP"
             recommended_action = "Automated Verification & Address Fix"
             action_payload = {
-                "display_message": "Trigger automated WhatsApp/SMS OTP confirmation and address validation to reduce undelivered returns.",
+                "display_message": "COD allowed. Automated WhatsApp OTP verification link triggered to confirm delivery address.",
                 "suggested_discount_inr": 0,
                 "allow_cod": True,
                 "require_otp_verification": True,
@@ -269,7 +284,7 @@ class RiskEngine:
             }
             risk_tier = "Medium"
 
-        # 4. GREEN PATH: Safe, highly profitable order
+        # 4. GREEN PATH: Safe, highly profitable order -> Instant 1-Click COD
         else:
             action_code = "AUTO_SHIP"
             recommended_action = "Auto-Ship (Pre-Approved COD)"

@@ -683,57 +683,172 @@ tab_score, tab_analytics, tab_batch = st.tabs([
 with tab_score:
     st.markdown("### Single Order Profit & Risk Simulator")
     
+    # Quick Preset Scenarios for Pitching & Demos
+    st.markdown("##### ⚡ Quick Scenarios (Interactive Pitch Demos)")
+    preset_data = st.session_state.get("preset_scenario", None)
+    
+    p_col1, p_col2, p_col3, p_col4 = st.columns(4)
+    with p_col1:
+        if st.button("🟢 Safe Loyal Buyer", use_container_width=True):
+            st.session_state["preset_scenario"] = {
+                "tier": "Tier 1",
+                "pincode_rto": 8.0,
+                "payment": "COD",
+                "value": 3200,
+                "discount": 10.0,
+                "category": "Apparel",
+                "addr_len": 65,
+                "landmark": "Yes",
+                "pin_match": "Yes",
+                "tenure": 180,
+                "past_orders": 4,
+                "past_rto": 0.0,
+                "weekend": "No"
+            }
+            st.rerun()
+            
+    with p_col2:
+        if st.button("🟡 Borderline (OTP Fix)", use_container_width=True):
+            st.session_state["preset_scenario"] = {
+                "tier": "Tier 2",
+                "pincode_rto": 24.0,
+                "payment": "COD",
+                "value": 2400,
+                "discount": 20.0,
+                "category": "Footwear",
+                "addr_len": 35,
+                "landmark": "No",
+                "pin_match": "Yes",
+                "tenure": 40,
+                "past_orders": 1,
+                "past_rto": 0.0,
+                "weekend": "Yes"
+            }
+            st.rerun()
+
+    with p_col3:
+        if st.button("🟠 Risky COD (UPI Discount)", use_container_width=True):
+            st.session_state["preset_scenario"] = {
+                "tier": "Tier 3",
+                "pincode_rto": 38.0,
+                "payment": "COD",
+                "value": 2850,
+                "discount": 30.0,
+                "category": "Apparel",
+                "addr_len": 28,
+                "landmark": "No",
+                "pin_match": "Yes",
+                "tenure": 12,
+                "past_orders": 0,
+                "past_rto": 0.0,
+                "weekend": "Yes"
+            }
+            st.rerun()
+
+    with p_col4:
+        if st.button("🔴 Fraud Repeat Offender", use_container_width=True):
+            st.session_state["preset_scenario"] = {
+                "tier": "Tier 3",
+                "pincode_rto": 48.0,
+                "payment": "COD",
+                "value": 5500,
+                "discount": 40.0,
+                "category": "Electronics",
+                "addr_len": 20,
+                "landmark": "No",
+                "pin_match": "No (Address mismatch)",
+                "tenure": 5,
+                "past_orders": 4,
+                "past_rto": 75.0,
+                "weekend": "Yes"
+            }
+            st.rerun()
+
+    # Defaults from preset or standard
+    d_tier = preset_data["tier"] if preset_data else "Tier 3"
+    d_pincode_rto = preset_data["pincode_rto"] if preset_data else 22.0
+    d_payment = preset_data["payment"] if preset_data else "COD"
+    d_value = preset_data["value"] if preset_data else 2850
+    d_discount = preset_data["discount"] if preset_data else 15.0
+    d_cat = preset_data["category"] if preset_data else "Apparel"
+    d_addr_len = preset_data["addr_len"] if preset_data else 45
+    d_landmark = preset_data["landmark"] if preset_data else "No"
+    d_pin_match = preset_data["pin_match"] if preset_data else "Yes"
+    d_weekend = preset_data["weekend"] if preset_data else "No"
+    d_tenure = preset_data["tenure"] if preset_data else 45
+    d_past_orders = preset_data["past_orders"] if preset_data else 2
+    d_past_rto = preset_data["past_rto"] if preset_data else 0.0
+
+    tier_opts = ["Tier 1", "Tier 2", "Tier 3"]
+    t_idx = tier_opts.index(d_tier) if d_tier in tier_opts else 2
+
+    pay_opts = ["COD", "Prepaid"]
+    pay_idx = pay_opts.index(d_payment) if d_payment in pay_opts else 0
+
+    cat_opts = ["Apparel", "Footwear", "Beauty", "Electronics", "Home"]
+    cat_idx = cat_opts.index(d_cat) if d_cat in cat_opts else 0
+
+    lm_opts = ["Yes", "No"]
+    lm_idx = lm_opts.index(d_landmark) if d_landmark in lm_opts else 1
+
+    pm_opts = ["Yes", "No (Address mismatch)"]
+    pm_idx = pm_opts.index(d_pin_match) if d_pin_match in pm_opts else 0
+
+    wk_opts = ["No", "Yes"]
+    wk_idx = wk_opts.index(d_weekend) if d_weekend in wk_opts else 0
+
+    st.markdown("<br>", unsafe_allow_html=True)
     # Grouped Inputs in 2-column layout
     st.markdown("##### 📍 Location Profile")
     row1_col1, row1_col2 = st.columns(2)
     with row1_col1:
-        pincode_tier = st.selectbox("Pincode Tier", ["Tier 1", "Tier 2", "Tier 3"], index=2)
+        pincode_tier = st.selectbox("Pincode Tier", tier_opts, index=t_idx)
     with row1_col2:
-        pincode_rto_rate = st.slider("Pincode Historical Return Rate (%)", 3.0, 55.0, 22.0, step=1.0) / 100.0
+        pincode_rto_rate = st.slider("Pincode Historical Return Rate (%)", 3.0, 55.0, float(d_pincode_rto), step=1.0) / 100.0
 
     st.markdown("##### 💳 Order Details")
     row2_col1, row2_col2 = st.columns(2)
     with row2_col1:
-        payment_mode = st.selectbox("Selected Checkout Payment Mode", ["COD", "Prepaid"], index=0)
+        payment_mode = st.selectbox("Selected Checkout Payment Mode", pay_opts, index=pay_idx)
     with row2_col2:
-        order_value = st.number_input("Order Total Value (₹)", min_value=299, max_value=25000, value=2850)
+        order_value = st.number_input("Order Total Value (₹)", min_value=299, max_value=25000, value=int(d_value))
 
     row3_col1, row3_col2 = st.columns(2)
     with row3_col1:
-        discount_pct = st.slider("Cart Discount Applied (%)", 0.0, 80.0, 15.0, step=1.0)
+        discount_pct = st.slider("Cart Discount Applied (%)", 0.0, 80.0, float(d_discount), step=1.0)
     with row3_col2:
-        category = st.selectbox("Product Category", ["Apparel", "Footwear", "Beauty", "Electronics", "Home"], index=0)
+        category = st.selectbox("Product Category", cat_opts, index=cat_idx)
 
     st.markdown("##### 🏠 Delivery Address Quality")
     row4_col1, row4_col2 = st.columns(2)
     with row4_col1:
-        address_length = st.slider("Address Character Length", 10, 150, 45)
+        address_length = st.slider("Address Character Length", 10, 150, int(d_addr_len))
     with row4_col2:
-        address_has_landmark = st.selectbox("Landmark Specified?", ["Yes", "No"], index=1)
+        address_has_landmark = st.selectbox("Landmark Specified?", lm_opts, index=lm_idx)
 
     row5_col1, row5_col2 = st.columns(2)
     with row5_col1:
-        pin_matches_city = st.selectbox("Pincode matches City?", ["Yes", "No (Address mismatch)"], index=0)
+        pin_matches_city = st.selectbox("Pincode matches City?", pm_opts, index=pm_idx)
     with row5_col2:
-        is_weekend_order = st.selectbox("Is Weekend Checkout?", ["No", "Yes"], index=0)
+        is_weekend_order = st.selectbox("Is Weekend Checkout?", wk_opts, index=wk_idx)
 
     st.markdown("##### 👤 Customer Purchase History")
     row6_col1, row6_col2 = st.columns(2)
     with row6_col1:
-        customer_tenure_days = st.number_input("Customer Account Age (Days)", min_value=0, max_value=730, value=45)
+        customer_tenure_days = st.number_input("Customer Account Age (Days)", min_value=0, max_value=730, value=int(d_tenure))
     with row6_col2:
-        customer_past_orders = st.number_input("Customer Past Orders Completed", min_value=0, max_value=100, value=2)
+        customer_past_orders = st.number_input("Customer Past Orders Completed", min_value=0, max_value=100, value=int(d_past_orders))
 
     row7_col1, row7_col2 = st.columns(2)
     with row7_col1:
-        customer_past_rto_rate = st.slider("Customer Historical Return Rate (%)", 0.0, 100.0, 0.0, step=1.0) / 100.0
+        customer_past_rto_rate = st.slider("Customer Historical Return Rate (%)", 0.0, 100.0, float(d_past_rto), step=1.0) / 100.0
     with row7_col2:
         st.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     score_btn = st.button("Analyze Profit & Risk Profile", use_container_width=True, type="primary")
 
-    if score_btn:
+    if score_btn or preset_data is not None:
         order_dict = {
             "pincode_tier": pincode_tier,
             "pincode_rto_rate": pincode_rto_rate,
@@ -876,6 +991,189 @@ with tab_score:
                         unsafe_allow_html=True
                     )
                     st.progress(min(1.0, max(0.0, abs(r["impact"]) / 0.50)))
+
+        # 3. Live Razorpay Dynamic Checkout Modal Simulator
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("### 📱 Live Razorpay Dynamic Checkout Experience (Buyer View)")
+        st.markdown("<p style='font-size:13px; color:#888888;'>Simulating how the Razorpay Checkout SDK dynamically adapts the payment options in real-time on the buyer's screen.</p>", unsafe_allow_html=True)
+
+        action_code = verdict.get("action_code", "AUTO_SHIP")
+        order_val = float(order_value)
+        discount_amt = float(action_payload.get("suggested_discount_inr", 0))
+        net_payable = order_val - discount_amt if action_code == "INCENTIVIZE_PREPAID" else order_val
+
+        # Dynamic Checkout View Parameters based on Action Code
+        if action_code == "AUTO_SHIP":
+            banner_bg = "rgba(16, 185, 129, 0.12)"
+            banner_border = "rgba(16, 185, 129, 0.3)"
+            banner_color = "#34D399"
+            banner_icon = "⚡"
+            banner_title = "Fast-Track Express Dispatch Pre-Approved"
+            banner_msg = "Your order qualifies for 1-Click Cash on Delivery and priority dispatch."
+            btn_bg = "#FFFFFF"
+            btn_color = "#000000"
+            btn_text = f"Place COD Order • ₹{net_payable:,.2f}"
+            btn_glow = "rgba(255, 255, 255, 0.2)"
+            payment_options_html = f"""
+            <div style='padding:12px 16px; background:rgba(56,189,248,0.08); border:1px solid #38BDF8; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#38BDF8; font-weight:700;'>🔘</span>
+                    <span style='color:#FFFFFF; font-size:13px; font-weight:600;'>Cash on Delivery (Pre-Approved 1-Click)</span>
+                </div>
+                <span style='color:#34D399; font-size:11px; background:rgba(16,185,129,0.15); padding:2px 6px; border-radius:4px; font-weight:600;'>FAST DISPATCH</span>
+            </div>
+            <div style='padding:12px 16px; background:rgba(255,255,255,0.02); border:1px solid #1E293B; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#64748B;'>⚪</span>
+                    <span style='color:#CBD5E1; font-size:13px;'>UPI (Google Pay, PhonePe, Paytm, BHIM)</span>
+                </div>
+                <span style='color:#94A3B8; font-size:11px;'>Instant</span>
+            </div>
+            <div style='padding:12px 16px; background:rgba(255,255,255,0.02); border:1px solid #1E293B; border-radius:6px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#64748B;'>⚪</span>
+                    <span style='color:#CBD5E1; font-size:13px;'>Cards / NetBanking / EMI</span>
+                </div>
+            </div>
+            """
+        elif action_code == "VERIFY_ADDRESS_OTP":
+            banner_bg = "rgba(245, 158, 11, 0.12)"
+            banner_border = "rgba(245, 158, 11, 0.3)"
+            banner_color = "#FBBF24"
+            banner_icon = "💬"
+            banner_title = "Automated Verification Required for COD"
+            banner_msg = "A 1-tap WhatsApp confirmation link has been triggered to verify delivery address."
+            btn_bg = "#FBBF24"
+            btn_color = "#000000"
+            btn_text = f"Verify WhatsApp OTP & Place Order • ₹{net_payable:,.2f}"
+            btn_glow = "rgba(245, 158, 11, 0.3)"
+            payment_options_html = f"""
+            <div style='padding:12px 16px; background:rgba(245,158,11,0.08); border:1px solid #FBBF24; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#FBBF24; font-weight:700;'>🔘</span>
+                    <span style='color:#FFFFFF; font-size:13px; font-weight:600;'>Cash on Delivery (WhatsApp OTP Verification)</span>
+                </div>
+                <span style='color:#FBBF24; font-size:11px; background:rgba(245,158,11,0.15); padding:2px 6px; border-radius:4px; font-weight:600;'>OTP SENT</span>
+            </div>
+            <div style='padding:12px 16px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.3); border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#38BDF8;'>⚪</span>
+                    <span style='color:#38BDF8; font-size:13px; font-weight:600;'>Pay via UPI / Cards (Skip OTP Verification)</span>
+                </div>
+                <span style='color:#38BDF8; font-size:11px; background:rgba(56,189,248,0.15); padding:2px 6px; border-radius:4px; font-weight:600;'>RECOMMENDED</span>
+            </div>
+            """
+        elif action_code == "INCENTIVIZE_PREPAID":
+            banner_bg = "rgba(251, 146, 60, 0.15)"
+            banner_border = "rgba(251, 146, 60, 0.4)"
+            banner_color = "#FB923C"
+            banner_icon = "🎉"
+            banner_title = "Limited Time Offer: Flat ₹50 Instant UPI Discount!"
+            banner_msg = "Pay instantly with UPI to save ₹50, skip delivery delays, and get free priority shipping."
+            btn_bg = "#38BDF8"
+            btn_color = "#000000"
+            btn_text = f"⚡ Pay with UPI Now • ₹{net_payable:,.2f} (Saved ₹50)"
+            btn_glow = "rgba(56, 189, 248, 0.35)"
+            payment_options_html = f"""
+            <div style='padding:14px 16px; background:rgba(56,189,248,0.12); border:1.5px solid #38BDF8; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#38BDF8; font-weight:700;'>🔘</span>
+                    <div>
+                        <div style='color:#FFFFFF; font-size:13.5px; font-weight:700;'>Instant UPI / QR FastPay</div>
+                        <div style='color:#94A3B8; font-size:11px;'>Google Pay, PhonePe, Paytm, UPI AutoPay</div>
+                    </div>
+                </div>
+                <div style='text-align:right;'>
+                    <span style='color:#34D399; font-size:11px; background:rgba(16,185,129,0.2); padding:2px 8px; border-radius:4px; font-weight:700;'>SAVE ₹50</span>
+                    <div style='color:#FFFFFF; font-weight:700; font-size:13.5px;'>₹{net_payable:,.2f} <span style='text-decoration:line-through; color:#64748B; font-size:11px;'>₹{order_val:,.0f}</span></div>
+                </div>
+            </div>
+            <div style='padding:12px 16px; background:rgba(255,255,255,0.02); border:1px solid #1E293B; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#64748B;'>⚪</span>
+                    <span style='color:#CBD5E1; font-size:13px;'>Credit / Debit Cards & NetBanking</span>
+                </div>
+            </div>
+            <div style='padding:12px 16px; background:rgba(255,255,255,0.02); border:1px solid #1E293B; border-radius:6px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#64748B;'>⚪</span>
+                    <span style='color:#CBD5E1; font-size:13px;'>Cash on Delivery (Standard Delivery • ₹{order_val:,.0f})</span>
+                </div>
+                <span style='color:#94A3B8; font-size:10.5px;'>NO DISCOUNT</span>
+            </div>
+            """
+        else: # STRICT_PREPAID_ONLY
+            banner_bg = "rgba(239, 68, 68, 0.12)"
+            banner_border = "rgba(239, 68, 68, 0.3)"
+            banner_color = "#F87171"
+            banner_icon = "📍"
+            banner_title = "Cash on Delivery Not Available at your Pincode"
+            banner_msg = "Cash on Delivery is currently unavailable for delivery to this pincode. Please complete your order via UPI or Card."
+            btn_bg = "#FFFFFF"
+            btn_color = "#000000"
+            btn_text = f"Pay ₹{net_payable:,.2f} Securely via Razorpay"
+            btn_glow = "rgba(255, 255, 255, 0.2)"
+            payment_options_html = f"""
+            <div style='padding:12px 16px; background:rgba(56,189,248,0.08); border:1px solid #38BDF8; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#38BDF8; font-weight:700;'>🔘</span>
+                    <span style='color:#FFFFFF; font-size:13px; font-weight:600;'>UPI (Google Pay, PhonePe, Paytm, BHIM)</span>
+                </div>
+                <span style='color:#38BDF8; font-size:11px; font-weight:600;'>FASTPAY</span>
+            </div>
+            <div style='padding:12px 16px; background:rgba(255,255,255,0.02); border:1px solid #1E293B; border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#64748B;'>⚪</span>
+                    <span style='color:#CBD5E1; font-size:13px;'>Credit / Debit Cards & NetBanking</span>
+                </div>
+            </div>
+            <div style='padding:12px 16px; background:rgba(239,68,68,0.06); border:1px dashed #64748B; border-radius:6px; display:flex; justify-content:space-between; align-items:center; opacity:0.75;'>
+                <div style='display:flex; align-items:center; gap:10px;'>
+                    <span style='color:#94A3B8;'>🚫</span>
+                    <span style='color:#CBD5E1; font-size:13px; font-weight:500;'>Cash on Delivery (Not available at your pincode)</span>
+                </div>
+                <span style='color:#94A3B8; font-size:10.5px; font-weight:600;'>UNAVAILABLE</span>
+            </div>
+            """
+
+        # Render the complete Razorpay Checkout Modal
+        st.markdown(
+            f"<div style='max-width:580px; margin:20px auto; background:#0B132B; border:1px solid #1E293B; border-radius:12px; overflow:hidden; box-shadow: 0 10px 35px rgba(0,0,0,0.8);'>"
+            f"  <div style='background:linear-gradient(135deg, #0C2340 0%, #071527 100%); padding:16px 20px; border-bottom:1px solid #1E293B; display:flex; justify-content:space-between; align-items:center;'>"
+            f"    <div>"
+            f"      <div style='display:flex; align-items:center; gap:8px;'>"
+            f"        <span style='font-size:16px;'>💳</span>"
+            f"        <span style='font-weight:700; color:#FFFFFF; font-size:15px; letter-spacing:-0.01em;'>Razorpay Standard Checkout</span>"
+            f"      </div>"
+            f"      <p style='margin:3px 0 0 0; font-size:11.5px; color:#94A3B8;'>D2C Merchant Store • Order #{hash(str(order_dict)) % 1000000}</p>"
+            f"    </div>"
+            f"    <div style='text-align:right;'>"
+            f"      <span style='font-size:10.5px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38BDF8; padding:3px 8px; border-radius:4px; font-weight:600;'>DYNAMIC ROUTING</span>"
+            f"      <p style='margin:4px 0 0 0; font-size:16px; font-weight:800; color:#FFFFFF;'>₹{net_payable:,.2f}</p>"
+            f"    </div>"
+            f"  </div>"
+            f"  <div style='padding:12px 18px; background:{banner_bg}; border-bottom:1px solid {banner_border};'>"
+            f"    <div style='display:flex; align-items:center; gap:8px;'>"
+            f"      <span style='font-size:15px;'>{banner_icon}</span>"
+            f"      <span style='font-size:12.5px; font-weight:700; color:{banner_color};'>{banner_title}</span>"
+            f"    </div>"
+            f"    <p style='margin:4px 0 0 24px; font-size:12px; color:#E2E8F0;'>{banner_msg}</p>"
+            f"  </div>"
+            f"  <div style='padding:16px 18px;'>"
+            f"    <p style='margin:0 0 10px 0; font-size:11px; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:0.05em;'>Payment Options</p>"
+            f"    {payment_options_html}"
+            f"  </div>"
+            f"  <div style='padding:14px 18px; background:#070C1A; border-top:1px solid #1E293B; text-align:center;'>"
+            f"    <div style='padding:11px; background:{btn_bg}; color:{btn_color}; font-weight:700; border-radius:8px; font-size:14px; box-shadow:0 4px 14px {btn_glow}; cursor:pointer;'>"
+            f"      {btn_text}"
+            f"    </div>"
+            f"    <p style='margin:10px 0 0 0; font-size:11px; color:#64748B;'>"
+            f"      🔒 256-Bit Bank Grade SSL Security • Powered by Razorpay"
+            f"    </p>"
+            f"  </div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
 
 # -------------------------------------------------------------
 # TAB 2: MODEL OPTIMIZATION ANALYTICS
